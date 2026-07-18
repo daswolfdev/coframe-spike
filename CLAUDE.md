@@ -79,6 +79,23 @@ proactively (`gh issue create`, `gh issue list`, …):
 - **Keep them honest.** Close what's done or obsolete; comment when scope
   changes rather than letting the issue drift from reality.
 
+## Convention gate — `make check`
+
+Mechanical rules are enforced by [checks/gate.sh](checks/gate.sh) (bash + git +
+grep, no dependencies). Run `make check` before pushing; `make hooks` routes git
+hooks through `.githooks/` so the gate runs on every commit. Current rules:
+
+- **doc-backlink** — every tracked `.md` (except CLAUDE.md and its symlinks)
+  links back to CLAUDE.md / AGENTS.md.
+- **symlink-integrity** — AGENTS.md and AGENT.md are symlinks resolving to
+  CLAUDE.md.
+- **doc-placement** — markdown lives under `docs/` or the root allowlist
+  (CLAUDE.md, AGENTS.md, AGENT.md, OBJECTIVE.md, README.md).
+- **links-resolve** — relative markdown link targets exist on disk.
+
+To add a rule: write a `rule_*` function in the script and append it to `RULES`.
+Future CI must call this same entrypoint.
+
 ## Things to avoid
 
 - **Committing secrets or build artifacts.** Config is committed; secrets are

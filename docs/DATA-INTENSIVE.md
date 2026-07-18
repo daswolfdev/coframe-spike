@@ -93,3 +93,5 @@ The book's payoff chapter.
 *A data system's hardest problem is keeping derived data faithful to its source.
 Event sourcing answers it by making the source a log and everything else a
 rebuildable fold.*
+
+*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*

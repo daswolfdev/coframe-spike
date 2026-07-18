@@ -116,3 +116,5 @@ hold the tension rather than pretend they agree:
 *Every technique in this book reduces to one verb: hide. Hide decisions behind
 deep interfaces, hide irrelevance from readers, hide special cases out of
 existence — and what's left is obvious. Obvious is the whole goal.*
+
+*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*
