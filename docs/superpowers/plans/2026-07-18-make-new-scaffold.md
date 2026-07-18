@@ -73,7 +73,7 @@ Run each; every failure must leave no `services/` residue:
 |---|---|
 | `make new` | `*** usage: make new S=<service-name>.  Stop.` |
 | `make new S=Bad_Name` | `new: invalid name 'Bad_Name' — …` (exit ≠ 0) |
-| `make new S=` | same invalid-name error (empty S is defined, so `ifndef` passes; the regex catches it) |
+| `make new S=` | the usage error (GNU make's `ifdef` treats an empty value as undefined, so `ifndef` fires) |
 | `make new S=_hidden` | same invalid-name error |
 
 - [ ] **Step 6: Verify the happy path**

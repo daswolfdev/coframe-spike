@@ -47,14 +47,17 @@ endif
 
 # Scaffold an empty service from services/_template: copy the Dockerfile,
 # rewrite the service name + build context in compose.yaml. The name guard
-# (lowercase DNS-safe, no leading _) also keeps sed's replacement literal
-# and the result discoverable. `make smoke` deploys through this same path.
+# (a lowercase DNS label — the name doubles as the service's DNS alias on
+# the compose network) also keeps sed's replacement literal and bars the
+# leading _ that would hide it from discovery. `make smoke` deploys through
+# this same path.
 new:
 ifndef S
 	$(error usage: make new S=<service-name>)
 endif
-	@expr "x$(S)" : 'x[a-z][a-z0-9-]*$$' >/dev/null || \
-	  { echo "new: invalid name '$(S)' — lowercase letters, digits, hyphens; must start with a letter"; exit 1; }
+	@case "$(S)" in ""|[!a-z]*|*[!a-z0-9-]*|*-) \
+	  echo "new: invalid name '$(S)' — lowercase letters, digits, hyphens; start with a letter, end with a letter or digit"; exit 1;; \
+	esac
 	@test ! -e services/$(S) || \
 	  { echo "new: services/$(S) already exists"; exit 1; }
 	mkdir -p services/$(S)

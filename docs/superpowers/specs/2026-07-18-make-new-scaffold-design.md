@@ -1,7 +1,7 @@
 # `make new` Service Scaffold — Design
 
 **Date:** 2026-07-18
-**Status:** Approved in brainstorming
+**Status:** Approved (staff-eng spec review: Approve; PR review tightened the name guard to a full DNS label)
 **Branch:** `make-new-scaffold` → PR into `main`
 
 ## Goal
@@ -27,9 +27,11 @@ new target.
 
 1. `S` undefined → `$(error usage: make new S=<service-name>)` — same idiom
    as `deploy`.
-2. Name fails `^[a-z][a-z0-9-]*$` → error. Lowercase DNS/compose-safe;
-   structurally cannot start with `_`, so the result is always discovered by
-   the platform.
+2. Name is not a lowercase DNS label — starts with a letter, ends with a
+   letter or digit: `^[a-z]$` or `^[a-z][a-z0-9-]*[a-z0-9]$` → error. The name
+   doubles as the service's DNS alias on the compose network; structurally
+   it cannot start with `_`, so the result is always discovered by the
+   platform.
 3. `services/$(S)` already exists → error; never overwrite.
 
 **Action (the same lines `smoke` uses today):**
