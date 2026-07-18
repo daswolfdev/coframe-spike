@@ -10,8 +10,10 @@ argument. Still to land with its service:
 
 ## Platform
 
-**Shape:** a root Makefile fronting Docker Compose. Five team verbs
-(`up/down/ps/logs/deploy`) plus maintainer `smoke`. The Makefile discovers
+**Shape:** a root Makefile fronting Docker Compose. Seven team verbs
+(`up/down/ps/logs/errors/deploy/new`) plus maintainer `smoke`; `new` scaffolds a
+service from the template, and `smoke` deploys through that same scaffold,
+so the pathway is re-proven on every smoke run. The Makefile discovers
 `services/*/compose.yaml` fragments (underscore-prefixed excluded) and merges
 them with `platform/compose.base.yaml` into one compose project (`perfmon`).
 State lives nowhere yet — no services run; shared infra (queue, db) arrives
@@ -78,15 +80,18 @@ stated trigger. Internals follow the Ctx-first canon
 the dashboard (#15) land with the worker's aggregates.
 
 **Queue contract (api↔worker):** typed columns (`id` = claim order,
-`site_id`, `page_url`, `lcp_ms`, `ts_ms`, `session_id`, `received_at_ms`),
-**delete-on-claim, at-most-once**: the worker claims with
-`BEGIN IMMEDIATE; SELECT … ORDER BY id LIMIT n; DELETE …; COMMIT` and then
-aggregates. A worker crash drops at most one claimed batch of monitoring
-samples — invisible in a p75 dashboard; revisit trigger: events that carry
-per-row value (billing). Rejected alternative: status-column at-least-once
-queue — reclaim timers, dedup, an extra index, all buying a guarantee RUM
-sampling doesn't need. (Why a SQLite table at all: the
-[Queue section](#queue-a-sqlite-table) above.)
+`site_id`, `page_url`, `lcp_ms`, `ts_ms`, `session_id`, `received_at_ms`,
+plus consumer-owned `claim_id`, NULL = unclaimed — the api never touches
+it), **effectively-once** (negotiated on #11): the worker claims by marking
+`claim_id` under `BEGIN IMMEDIATE`, folds into `agg.db` alongside a batch
+marker in one transaction, then deletes by `claim_id`; a crash at any point
+recovers exactly once from the marker at startup — no reclaim timers, no
+dedup index. Rejected alternatives: delete-on-claim at-most-once (simplest,
+but silently drops a batch per crash, and its consumer-side repair is
+unsound — SQLite reuses rowids once the table drains empty); timer-based
+at-least-once (reclaim timers + dedup buying nothing the marker doesn't).
+(Why a SQLite table at all: the [Queue section](#queue-a-sqlite-table)
+above.)
 
 **Config as code:** site SDK config (sampling rate, experiments) is
 hardcoded in `cfg.py` — OBJECTIVE.md sanctions an in-memory map, git is the
@@ -102,11 +107,17 @@ becomes real (customers self-serve experiments), this flips to the SQLite
 table sooner than any other choice here changes — the seam (`ctx.cfg.sites`
 read by one command) is one function wide on purpose.
 
+**Ops surface:** `GET /stats` serves `queue_depth` (count of queue rows —
+the worker-down metric) and `last_aggregate_ms` (max event time folded into
+the worker's `page_current`, seconds→ms at the read layer; null until the
+worker first writes). agg.db is opened read-only per call so the api can
+never create the worker's file on the shared volume.
+
 **Deliberately not built (and triggers):** dashboard read endpoints
-(trigger: worker PR defines `agg.db` — #15); `/stats` + queue-depth metric
-(trigger: #19, the ops read surface); auth/rate-limiting on `POST /events`
-(trigger: leaving the loopback-only laptop posture, #32); event batching in the SDK
-wire format (trigger: measured ingest pressure, not before).
+(trigger: worker PR defines `agg.db` — #15); auth/rate-limiting on
+`POST /events` (trigger: leaving the loopback-only laptop posture, #32);
+event batching in the SDK wire format (trigger: measured ingest pressure,
+not before).
 
 ## dashboard
 
