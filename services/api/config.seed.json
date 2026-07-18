@@ -1,0 +1,12 @@
+{
+  "demo": {
+    "sampling_rate": 1.0,
+    "experiments": [
+      { "id": "checkout-cta-color", "variants": ["control", "green"], "traffic": 0.5 }
+    ]
+  },
+  "acme": {
+    "sampling_rate": 0.1,
+    "experiments": []
+  }
+}

@@ -1,0 +1,15 @@
+# api — ingest + SDK config. Owns host port 8080 (service-owned, no central
+# registry — see services/_template/compose.yaml rule 4).
+services:
+  api:
+    build:
+      context: ./services/api
+    ports:
+      - "8080:8080"
+    volumes:
+      - data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8080/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
