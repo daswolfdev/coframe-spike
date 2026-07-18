@@ -79,7 +79,7 @@ the shared `data` volume — added to `compose.base.yaml` in this PR, its
 stated trigger. Internals follow the Ctx-first canon
 ([service README](../services/api/README.md),
 [architecture](../services/api/docs/architecture.md)); read endpoints for
-the dashboard (#15) land with the worker's aggregates.
+the dashboard (#15) are next, now that the worker's aggregates exist.
 
 **Queue contract (api↔worker):** typed columns (`id` = claim order,
 `site_id`, `page_url`, `lcp_ms`, `ts_ms`, `session_id`, `received_at_ms`,
@@ -118,7 +118,8 @@ opened read-only per call so the api can never create the worker's file on
 the shared volume.
 
 **Deliberately not built (and triggers):** dashboard read endpoints
-(trigger: worker PR defines `agg.db` — #15); auth/rate-limiting on
+(trigger fired — the worker landed `agg.db`; #15 is the next build);
+auth/rate-limiting on
 `POST /events` (trigger: leaving the loopback-only laptop posture, #32);
 event batching in the SDK wire format (trigger: measured ingest pressure,
 not before).

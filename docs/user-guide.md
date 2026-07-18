@@ -28,7 +28,9 @@ depth climbing) go straight to the [runbook](runbook.md).
 - **API:** <http://localhost:8000> — `POST /events` (SDK ingest),
   `GET /config/{site_id}` (SDK config), `/healthz`, and `/stats` (queue depth
   + data freshness — today's ops signal). Read endpoints for the dashboard
-  land with the worker's aggregates.
+  are next (#15) — the aggregates they'll read are live in `agg.db`.
+- **Worker:** <http://localhost:8082> — ops only: `/healthz` (loop ticking),
+  `/stats` (events consumed, queue depth, flush timings).
 - Each service owns its host port in its own `services/<name>/compose.yaml`.
 
 ## Changing SDK config (experiments, sampling)
