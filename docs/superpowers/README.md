@@ -13,10 +13,12 @@ disagree, design.md wins.
 ## Specs
 
 - [2026-07-18 — Go worker](specs/2026-07-18-worker-design.md)
+- [2026-07-18 — `make new` service scaffold](specs/2026-07-18-make-new-scaffold-design.md)
 - [2026-07-18 — Dashboard service](specs/2026-07-18-dashboard-design.md)
 - [2026-07-18 — Monorepo layout](specs/2026-07-18-monorepo-layout-design.md)
 
 ## Plans
 
 - [2026-07-18 — Go worker](plans/2026-07-18-worker.md)
+- [2026-07-18 — `make new` service scaffold](plans/2026-07-18-make-new-scaffold.md)
 - [2026-07-18 — Monorepo layout](plans/2026-07-18-monorepo-layout.md)

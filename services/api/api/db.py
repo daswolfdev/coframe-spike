@@ -100,8 +100,23 @@ def db_create(data_dir: Path) -> Db:
     data_dir.mkdir(parents=True, exist_ok=True)
     queue = _open(data_dir / "queue.db")
     queue.execute(QUEUE_SCHEMA)
+    _migrate_claim_id(queue)
     queue.execute(QUEUE_UNCLAIMED_INDEX)
     return Db(queue=queue, data_dir=data_dir)
+
+
+def _migrate_claim_id(conn: sqlite3.Connection) -> None:
+    """Add claim_id to queue tables created before #46.
+
+    CREATE TABLE IF NOT EXISTS skips existing tables, so a live volume
+    never picks up new columns from the schema string alone — without
+    this, the worker crashes on such volumes ("no such column:
+    claim_id"). Additive and idempotent; the owner of the schema owns
+    its migrations.
+    """
+    cols = {str(row[1]) for row in conn.execute("PRAGMA table_info(queue)")}
+    if "claim_id" not in cols:
+        conn.execute("ALTER TABLE queue ADD COLUMN claim_id INTEGER")
 
 
 def _open(path: Path) -> sqlite3.Connection:

@@ -6,6 +6,7 @@
 #   make logs [S=api]  follow logs, last 100 + live (all services, or one)
 #   make errors [S=api] follow only error/exception lines
 #   make deploy S=api  rebuild + restart ONE service
+#   make new S=alerts  scaffold an empty service from the template
 #   make smoke         (maintainer) prove the add-a-service pathway end-to-end
 #   make check         run the convention gate (same entrypoint CI will use)
 #   make hooks         route git hooks through .githooks (pre-commit runs the gate)
@@ -18,7 +19,7 @@ COMPOSE := docker compose --project-directory . \
   -f platform/compose.base.yaml \
   $(foreach f,$(COMPOSE_FRAGMENTS),-f $(f))
 
-.PHONY: up down ps logs errors deploy smoke check hooks
+.PHONY: up down ps logs errors deploy new smoke check hooks
 
 up:
 ifeq ($(COMPOSE_FRAGMENTS),)
@@ -50,6 +51,30 @@ endif
 	$(COMPOSE) up -d --build $(S)
 	@$(COMPOSE) ps $(S)
 
+# Scaffold an empty service from services/_template: copy the Dockerfile,
+# rewrite the service name + build context in compose.yaml. The name guard
+# (a lowercase DNS label — the name doubles as the service's DNS alias on
+# the compose network) also keeps sed's replacement literal and bars the
+# leading _ that would hide it from discovery. `make smoke` deploys through
+# this same path.
+new:
+ifndef S
+	$(error usage: make new S=<service-name>)
+endif
+	@case "$(S)" in ""|[!a-z]*|*[!a-z0-9-]*|*-) \
+	  echo "new: invalid name '$(S)' — lowercase letters, digits, hyphens; start with a letter, end with a letter or digit"; exit 1;; \
+	esac
+	@test ! -e services/$(S) || \
+	  { echo "new: services/$(S) already exists"; exit 1; }
+	mkdir -p services/$(S)
+	cp services/_template/Dockerfile services/$(S)/Dockerfile
+	sed 's/_template/$(S)/g' services/_template/compose.yaml > services/$(S)/compose.yaml
+	@echo "new: services/$(S) scaffolded. Next steps (docs/adding-a-service.md):"
+	@echo "  1. replace services/$(S)/Dockerfile with your build"
+	@echo "  2. make the healthcheck in services/$(S)/compose.yaml real"
+	@echo "  3. if it listens: uncomment ports, pick a free host port (make ps)"
+	@echo "  4. make deploy S=$(S)"
+
 check: ## Run the convention gate (same entrypoint CI will use)
 	./checks/gate.sh
 
@@ -63,9 +88,7 @@ hooks: ## Route git hooks through .githooks (pre-commit runs the gate)
 # and Linux alike.
 smoke:
 	rm -rf services/smoke-test
-	mkdir -p services/smoke-test
-	cp services/_template/Dockerfile services/smoke-test/Dockerfile
-	sed 's/_template/smoke-test/g' services/_template/compose.yaml > services/smoke-test/compose.yaml
+	$(MAKE) new S=smoke-test
 	$(MAKE) up
 	i=0; until [ "$$(docker inspect -f '{{.State.Health.Status}}' perfmon-smoke-test-1 2>/dev/null)" = "healthy" ]; do \
 	  i=$$((i+1)); \

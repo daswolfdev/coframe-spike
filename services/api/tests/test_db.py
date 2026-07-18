@@ -1,9 +1,33 @@
+import sqlite3
+from pathlib import Path
+
 import pytest
 from conftest import TestCtx
+
+from api.db import db_create
 
 
 class BoomError(Exception):
     pass
+
+
+def test_db_create_migrates_pre_claim_id_volume(tmp_path: Path) -> None:
+    # Failure mode this guards: CREATE TABLE IF NOT EXISTS skips existing
+    # tables, so a volume created before #46 lacks claim_id and the worker
+    # crashes at startup ("no such column: claim_id").
+    old = sqlite3.connect(tmp_path / "queue.db")
+    old.execute(
+        "CREATE TABLE queue (id INTEGER PRIMARY KEY, site_id TEXT NOT NULL,"
+        " page_url TEXT NOT NULL, lcp_ms REAL NOT NULL, ts_ms INTEGER NOT NULL,"
+        " session_id TEXT NOT NULL, received_at_ms INTEGER NOT NULL)"
+    )
+    old.close()
+
+    db = db_create(tmp_path)
+    cols = {str(row[1]) for row in db.queue.execute("PRAGMA table_info(queue)")}
+    assert "claim_id" in cols
+    # Idempotent: a second boot on the migrated volume must not error.
+    db_create(tmp_path)
 
 
 def _count(ctx: TestCtx) -> int:
