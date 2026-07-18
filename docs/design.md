@@ -2,9 +2,11 @@
 
 Judged against [OBJECTIVE.md](../OBJECTIVE.md). Reviewed under
 [SPEC-REVIEW.md](SPEC-REVIEW.md). This document grows a section per service
-as each lands; today it covers the platform, the api's write/config surface,
-and the dashboard. The [worker](../services/worker/README.md) lands in a
-follow-up PR.
+as each lands — each service's PR brings its own section. Landed so far:
+platform, the queue choice, [api](../services/api/README.md) (write/config
+surface), [dashboard](../services/dashboard/README.md), and the scaling
+argument. Still to land with its service:
+[worker](../services/worker/README.md).
 
 ## Platform
 
@@ -37,6 +39,31 @@ contributor breaking main); observability stack (trigger: first service PR —
 logs/metrics land with something to observe); queue/db in compose.base.yaml
 (trigger: the api service PR chooses one and justifies it here).
 
+## Queue: a SQLite table
+
+**The choice OBJECTIVE requires justifying.** The queue between api and
+worker is a table in `queue.db` (WAL mode) on the shared platform volume: the
+api INSERTs per request, the worker claims and deletes in batches
+(`BEGIN IMMEDIATE`). Chosen because it is zero additional infrastructure —
+nothing new to operate, monitor, back up, or explain at a 5-person company —
+and because the known weak spot (two processes contending for one file's
+write lock) was measured, not assumed: under concurrent enqueue + dequeue it
+sustains ~126,000 inserts/s (126× the 1,000 events/s target) and drains
+~33,000 rows/s
+([benchmark report](reports/2026-07-18-sqlite-wal-throughput.md)).
+
+**Rejected alternative: Redis.** The default answer, and it would work — but
+it adds a second stateful service for the team to run, secure, and monitor,
+buys headroom the measurements show we already have ~two orders of magnitude
+of, and its durability story (RDB/AOF tuning) is one more decision nobody
+here needs to make. A queue that is just a table also keeps the failure demo
+honest: depth is one `SELECT count(*)`.
+
+**Failure mode owned:** if the worker dies, the queue grows on disk instead
+of dropping events — that is the demo's failure beat and the
+[runbook](runbook.md)'s subject. Sustained depth growth is the one metric
+that matters here.
+
 ## api
 
 **Shape:** FastAPI/uvicorn (Python 3.14, uv), host port 8000. In:
@@ -58,8 +85,8 @@ aggregates. A worker crash drops at most one claimed batch of monitoring
 samples — invisible in a p75 dashboard; revisit trigger: events that carry
 per-row value (billing). Rejected alternative: status-column at-least-once
 queue — reclaim timers, dedup, an extra index, all buying a guarantee RUM
-sampling doesn't need. (Redis as the queue was rejected earlier on the
-[WAL evidence](reports/2026-07-18-sqlite-wal-throughput.md).)
+sampling doesn't need. (Why a SQLite table at all: the
+[Queue section](#queue-a-sqlite-table) above.)
 
 **Config as code:** site SDK config (sampling rate, experiments) is
 hardcoded in `cfg.py` — OBJECTIVE.md sanctions an in-memory map, git is the
@@ -109,3 +136,28 @@ middleware into the api (two services own one decision), plus preflight
 traffic. Load at ceiling: 1,000 users polling every 5s ≈ 600 req/s of
 static/proxy traffic — nginx territory; api-side reads have measured
 headroom (~9,300 QPS, [benchmark report](reports/2026-07-18-sqlite-wal-throughput.md)).
+
+## Scaling pathway (argued, per constraint #3)
+
+To 1,000 events/s and 1,000 concurrent dashboard users — and deliberately no
+further. Tier by tier, with the knob named:
+
+- **Storage & queue:** measured, not argued — every path carries ~30–126×
+  the target on a laptop
+  ([benchmark report](reports/2026-07-18-sqlite-wal-throughput.md)). Not the
+  bottleneck.
+- **API tier:** the actual bottleneck at ceiling is Python HTTP handling.
+  The knob is uvicorn worker count (single writer per file is preserved:
+  enqueue is multi-writer by design and measured as such). No code changes,
+  one compose line.
+- **Worker:** batch dequeue drains ~33× the ingest target; a lagging worker
+  is a restart or a batch-size bump, not a redesign.
+- **Dashboard tier:** 1,000 users polling ≈ 600 req/s of static + proxied
+  reads — routine nginx territory; api-side reads measured at ~9,300 QPS.
+
+**The stop line:** this design assumes one host — SQLite WAL's shared-memory
+index requires it. The day a second host is genuinely needed is the day the
+stores swap to Postgres (the report's revisit trigger). Sharding, replication,
+and caching layers are deliberately absent: no measured load parameter
+demands them, and OBJECTIVE explicitly grades planet-scale design as a wrong
+answer.
