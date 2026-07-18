@@ -13,6 +13,7 @@ Ctrl-C stops it and prints the final count.
 import argparse
 import json
 import random
+import signal
 import sys
 import time
 import urllib.error
@@ -58,9 +59,26 @@ def main() -> int:
     sent = errors = 0
     interval = 1.0 / args.rate
     next_report = time.monotonic() + 1.0
+
+    # A raising KeyboardInterrupt can land between a send completing (row
+    # already committed server-side) and `sent += 1`, undercounting FINAL
+    # by one (#63) — and the demo's money shot is exact equality with the
+    # aggregated count. A flag checked at the loop top can't race: an
+    # in-flight request and its increment always finish together.
+    stop = False
+
+    def request_stop(signum: int, frame: object) -> None:
+        nonlocal stop
+        stop = True
+        # Second Ctrl-C force-kills, so a hung request can't trap the user.
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+
+    signal.signal(signal.SIGINT, request_stop)
+    signal.signal(signal.SIGTERM, request_stop)  # scripted runs count too
+
     print(f"loadgen: {args.rate:g} events/s -> {args.api}/events (Ctrl-C to stop)")
     try:
-        while True:
+        while not stop:
             started = time.monotonic()
             try:
                 send(args.api, sent)
@@ -71,9 +89,13 @@ def main() -> int:
             if time.monotonic() >= next_report:
                 print(f"loadgen: sent={sent} errors={errors}")
                 next_report += 1.0
+            if stop:
+                break
             time.sleep(max(0.0, interval - (time.monotonic() - started)))
-    except KeyboardInterrupt:
         print(f"\nloadgen: FINAL sent={sent} errors={errors}")
+    except KeyboardInterrupt:
+        # Forced exit — a request may be in flight and uncounted.
+        print(f"\nloadgen: FINAL sent={sent} errors={errors} (forced, inexact)")
     return 0
 
 
