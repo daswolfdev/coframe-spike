@@ -6,6 +6,8 @@ services:
       context: ./services/api
     ports:
       - "8000:8000"
+    volumes:
+      - data:/data # platform-owned shared volume (platform/compose.base.yaml)
     healthcheck:
       test:
         - CMD

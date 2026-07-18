@@ -3,9 +3,9 @@
 Judged against [OBJECTIVE.md](../OBJECTIVE.md). Reviewed under
 [SPEC-REVIEW.md](SPEC-REVIEW.md). This document grows a section per service
 as each lands — each service's PR brings its own section. Landed so far:
-platform, the queue choice, [dashboard](../services/dashboard/README.md), and
-the scaling argument. Still to land with their services:
-[api](../services/api/README.md) (skeleton merged, section owed with #11) and
+platform, the queue choice, [api](../services/api/README.md) (write/config
+surface), [dashboard](../services/dashboard/README.md), and the scaling
+argument. Still to land with its service:
 [worker](../services/worker/README.md).
 
 ## Platform
@@ -63,6 +63,50 @@ honest: depth is one `SELECT count(*)`.
 of dropping events — that is the demo's failure beat and the
 [runbook](runbook.md)'s subject. Sustained depth growth is the one metric
 that matters here.
+
+## api
+
+**Shape:** FastAPI/uvicorn (Python 3.14, uv), host port 8000. In:
+`POST /events` (SDK wire format per OBJECTIVE.md; Pydantic-validated, one
+autocommit INSERT — the benchmarked path, ~129k/s against a 1k/s target)
+and `GET /config/{site_id}` (hardcoded site map from `cfg.py`; unknown site
+404). Out: rows in the queue table; JSON config. State: `queue.db` (WAL) on
+the shared `data` volume — added to `compose.base.yaml` in this PR, its
+stated trigger. Internals follow the Ctx-first canon
+([service README](../services/api/README.md),
+[architecture](../services/api/docs/architecture.md)); read endpoints for
+the dashboard (#15) land with the worker's aggregates.
+
+**Queue contract (api↔worker):** typed columns (`id` = claim order,
+`site_id`, `page_url`, `lcp_ms`, `ts_ms`, `session_id`, `received_at_ms`),
+**delete-on-claim, at-most-once**: the worker claims with
+`BEGIN IMMEDIATE; SELECT … ORDER BY id LIMIT n; DELETE …; COMMIT` and then
+aggregates. A worker crash drops at most one claimed batch of monitoring
+samples — invisible in a p75 dashboard; revisit trigger: events that carry
+per-row value (billing). Rejected alternative: status-column at-least-once
+queue — reclaim timers, dedup, an extra index, all buying a guarantee RUM
+sampling doesn't need. (Why a SQLite table at all: the
+[Queue section](#queue-a-sqlite-table) above.)
+
+**Config as code:** site SDK config (sampling rate, experiments) is
+hardcoded in `cfg.py` — OBJECTIVE.md sanctions an in-memory map, git is the
+system of record, and a change deploys in seconds via `make deploy S=api`,
+health-gated and auditable. Rejected alternative: a seeded SQLite table —
+runtime mutability that no one can exercise (there is no auth, UI, or write
+endpoint either way). Trigger to build it: the first time a non-engineer
+needs to change a value. Consequence: `config.db` was dropped; the api owns
+only `queue.db`.
+
+**Least confident decision:** config-as-code. If the product fiction
+becomes real (customers self-serve experiments), this flips to the SQLite
+table sooner than any other choice here changes — the seam (`ctx.cfg.sites`
+read by one command) is one function wide on purpose.
+
+**Deliberately not built (and triggers):** dashboard read endpoints
+(trigger: worker PR defines `agg.db` — #15); `/stats` + queue-depth metric
+(trigger: #19, the ops read surface); auth/rate-limiting on `POST /events`
+(trigger: leaving the laptop/LAN posture, #32); event batching in the SDK
+wire format (trigger: measured ingest pressure, not before).
 
 ## dashboard
 

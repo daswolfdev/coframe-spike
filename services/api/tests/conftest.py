@@ -72,4 +72,3 @@ def tctx(tmp_path: Path) -> Iterator[TestCtx]:
     ctx = test_ctx_create(tmp_path)
     yield ctx
     ctx.db.queue.close()
-    ctx.db.config.close()
