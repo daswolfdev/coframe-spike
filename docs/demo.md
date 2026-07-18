@@ -36,8 +36,8 @@ the one the [runbook](runbook.md) documents; they are written as a pair.
 - [x] [#11](https://github.com/daswolfdev/coframe-spike/issues/11) — the
   worker itself: the failure's subject, and the source of the aggregates
   every dashboard beat reads (landed: `services/worker/`)
-- [ ] [#15](https://github.com/daswolfdev/coframe-spike/issues/15) — api
-  read endpoints the dashboard calls (`/sites`, pages, trend)
+- [x] [#15](https://github.com/daswolfdev/coframe-spike/issues/15) — api
+  read endpoints the dashboard calls (`/sites`, pages, trend): landed
 - [x] [#18](https://github.com/daswolfdev/coframe-spike/issues/18) — load
   generator with a sent-count, so the no-loss claim is checkable:
   `python3 tools/loadgen.py` (stdlib only; Ctrl-C prints the final count)

@@ -43,6 +43,15 @@ func Open(path string) (*Store, error) {
 			last_seen INTEGER NOT NULL,
 			PRIMARY KEY (site_id, page_url, minute)
 		)`,
+		`CREATE TABLE IF NOT EXISTS site_minute (
+			site_id   TEXT NOT NULL,
+			minute    INTEGER NOT NULL,
+			count     INTEGER NOT NULL,
+			hist      BLOB NOT NULL,
+			p75_ms    INTEGER NOT NULL,
+			last_seen INTEGER NOT NULL,
+			PRIMARY KEY (site_id, minute)
+		)`,
 		`CREATE TABLE IF NOT EXISTS page_current (
 			site_id   TEXT NOT NULL,
 			page_url  TEXT NOT NULL,
@@ -146,6 +155,46 @@ func (s *Store) Apply(batchID int64, samples []Sample, now time.Time) error {
 			   count = page_current.count + excluded.count,
 			   p75_ms = excluded.p75_ms, last_seen = excluded.last_seen`,
 			k.site, k.page, nAdded[k], trailing.P75(), nowUnix); err != nil {
+			return err
+		}
+	}
+
+	// Site-level minute buckets: the dashboard trend's source (#15). A
+	// true per-site p75 needs the merged histogram — per-page p75s don't
+	// compose — so the fold happens here, where histograms live; the api
+	// reads p75_ms as a plain column. Built from samples, not `added`:
+	// the page loop above mutated those hists into bucket totals, and
+	// re-merging totals would double-count prior batches.
+	siteAdded := map[string]*Hist{}
+	for _, smp := range samples {
+		if siteAdded[smp.SiteID] == nil {
+			siteAdded[smp.SiteID] = &Hist{}
+		}
+		siteAdded[smp.SiteID].Add(smp.LCPms)
+	}
+	for site, h := range siteAdded {
+		var blob []byte
+		err := tx.QueryRow(
+			`SELECT hist FROM site_minute WHERE site_id=? AND minute=?`,
+			site, minute).Scan(&blob)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+		case err != nil:
+			return err
+		default:
+			old, derr := Decode(blob)
+			if derr != nil {
+				return derr
+			}
+			h.Merge(old)
+		}
+		if _, err := tx.Exec(
+			`INSERT INTO site_minute (site_id, minute, count, hist, p75_ms, last_seen)
+			 VALUES (?, ?, ?, ?, ?, ?)
+			 ON CONFLICT (site_id, minute) DO UPDATE SET
+			   count = excluded.count, hist = excluded.hist,
+			   p75_ms = excluded.p75_ms, last_seen = excluded.last_seen`,
+			site, minute, h.Count(), h.Encode(), h.P75(), nowUnix); err != nil {
 			return err
 		}
 	}

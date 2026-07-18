@@ -78,8 +78,11 @@ and `GET /config/{site_id}` (hardcoded site map from `cfg.py`; unknown site
 the shared `data` volume — added to `compose.base.yaml` in this PR, its
 stated trigger. Internals follow the Ctx-first canon
 ([service README](../services/api/README.md),
-[architecture](../services/api/docs/architecture.md)); read endpoints for
-the dashboard (#15) are next, now that the worker's aggregates exist.
+[architecture](../services/api/docs/architecture.md)). The dashboard read
+surface (`GET /sites`, `/sites/{id}/pages`, `/sites/{id}/trend` — #15)
+serves the worker's aggregates as plain columns, degrading to empty —
+never 500 — through every mid-rollout state (agg.db file, schema, or
+table not there yet).
 
 **Queue contract (api↔worker):** typed columns (`id` = claim order,
 `site_id`, `page_url`, `lcp_ms`, `ts_ms`, `session_id`, `received_at_ms`,
@@ -117,9 +120,7 @@ seconds→ms at the read layer; null until the worker first writes). agg.db is
 opened read-only per call so the api can never create the worker's file on
 the shared volume.
 
-**Deliberately not built (and triggers):** dashboard read endpoints
-(trigger fired — the worker landed `agg.db`; #15 is the next build);
-auth/rate-limiting on
+**Deliberately not built (and triggers):** auth/rate-limiting on
 `POST /events` (trigger: leaving the loopback-only laptop posture, #32);
 event batching in the SDK wire format (trigger: measured ingest pressure,
 not before).
@@ -135,11 +136,11 @@ back up and nothing for the runbook. (The nginx `/api/` location is a
 same-origin proxy for the dashboard's own calls, not the platform-wide
 reverse proxy deliberately not built above — services still own their ports.)
 
-**Contract posture:** built ahead of its data sources; #15 is the contract's
-authoritative home while the api's read endpoints are under negotiation.
-404/502 and empty data collapse into one "no data yet" render, so the
-dashboard ships before the api's read endpoints and the worker's aggregates
-exist, and degrades identically when they fail later. `?fixture=1` renders
+**Contract posture:** built ahead of its data sources — #15 was the
+contract's home while the read endpoints were negotiated; they have since
+landed (api section above). 404/502 and empty data collapse into one
+"no data yet" render, so the dashboard shipped before its sources existed
+and degrades identically when they fail. `?fixture=1` renders
 the committed executable example of the contract (sync discipline lives in
 [the service README](../services/dashboard/README.md)). When the api is
 unreachable, last-loaded data stays on screen under a banner that says it
@@ -163,8 +164,11 @@ first platform-health consumer who doesn't live in a terminal.
 
 **Shape:** Go binary; consumes the producer-owned `queue` table (batch
 claim via `BEGIN IMMEDIATE`, 250ms poll, ≤2,000 rows), folds
-per-`(site_id, page_url)` minute buckets of log-binned LCP histograms
-plus a running row into `agg.db` (worker is its only writer).
+per-`(site_id, page_url)` minute buckets of log-binned LCP histograms,
+a running row per page, and site-level minute buckets (`site_minute` —
+the trend's source, added for #15: per-page p75s don't compose into a
+site p75, merged histograms do, so the merge lives with the histogram's
+owner) into `agg.db` (worker is its only writer).
 Effectively-once: consumer-owned `claim_id` marks in the queue plus a
 batch marker inside the agg transaction, startup recovery, crash-only
 error policy (negotiated on #11). State: `queue` rows are transient;

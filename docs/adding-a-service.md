@@ -22,7 +22,9 @@ Worked example: adding a service called `alerts`.
 3. **Replace the Dockerfile** *(5 min)* — whatever builds and runs your
    service. Log to stdout; no log files.
 4. **Make the healthcheck real** *(2 min)* — replace `["CMD", "true"]` with a
-   probe of your service, e.g. `["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]`.
+   probe of your service, e.g. `["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]`
+   — probe `127.0.0.1`, not `localhost`: in most containers `localhost`
+   resolves to `::1` first, and a server listening only on IPv4 looks dead.
    Not optional: `make check` rejects a service that still carries the
    placeholder probe, in any spelling.
 5. **Deploy it** *(2 min)*

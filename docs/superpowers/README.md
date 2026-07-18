@@ -12,6 +12,7 @@ disagree, design.md wins.
 
 ## Specs
 
+- [2026-07-18 — API read endpoints](specs/2026-07-18-api-read-endpoints-design.md)
 - [2026-07-18 — Go worker](specs/2026-07-18-worker-design.md)
 - [2026-07-18 — `make new` service scaffold](specs/2026-07-18-make-new-scaffold-design.md)
 - [2026-07-18 — Dashboard service](specs/2026-07-18-dashboard-design.md)
