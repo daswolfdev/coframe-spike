@@ -55,7 +55,25 @@ CREATE INDEX IF NOT EXISTS queue_unclaimed ON queue (id) WHERE claim_id IS NULL
 @dataclass(frozen=True)
 class Db:
     queue: sqlite3.Connection
+    data_dir: Path
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    def agg_ro(self) -> sqlite3.Connection | None:
+        """Read-only handle to the worker-owned agg.db, or None before it exists.
+
+        mode=ro so the api can never create the file — agg.db is born owned
+        by the worker (creating it here could pin the wrong uid on the shared
+        volume). Opened per call: cheap at ops-poll frequency, and there is
+        no connection to hold before the worker's first write. Caller closes.
+        """
+        try:
+            return sqlite3.connect(
+                f"file:{self.data_dir / 'agg.db'}?mode=ro",
+                uri=True,
+                check_same_thread=False,
+            )
+        except sqlite3.OperationalError:
+            return None
 
     @contextmanager
     def transaction(self, conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
@@ -83,7 +101,7 @@ def db_create(data_dir: Path) -> Db:
     queue = _open(data_dir / "queue.db")
     queue.execute(QUEUE_SCHEMA)
     queue.execute(QUEUE_UNCLAIMED_INDEX)
-    return Db(queue=queue)
+    return Db(queue=queue, data_dir=data_dir)
 
 
 def _open(path: Path) -> sqlite3.Connection:

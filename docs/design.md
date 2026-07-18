@@ -105,11 +105,17 @@ becomes real (customers self-serve experiments), this flips to the SQLite
 table sooner than any other choice here changes — the seam (`ctx.cfg.sites`
 read by one command) is one function wide on purpose.
 
+**Ops surface:** `GET /stats` serves `queue_depth` (count of queue rows —
+the worker-down metric) and `last_aggregate_ms` (max event time folded into
+the worker's `page_current`, seconds→ms at the read layer; null until the
+worker first writes). agg.db is opened read-only per call so the api can
+never create the worker's file on the shared volume.
+
 **Deliberately not built (and triggers):** dashboard read endpoints
-(trigger: worker PR defines `agg.db` — #15); `/stats` + queue-depth metric
-(trigger: #19, the ops read surface); auth/rate-limiting on `POST /events`
-(trigger: leaving the laptop/LAN posture, #32); event batching in the SDK
-wire format (trigger: measured ingest pressure, not before).
+(trigger: worker PR defines `agg.db` — #15); auth/rate-limiting on
+`POST /events` (trigger: leaving the laptop/LAN posture, #32); event
+batching in the SDK wire format (trigger: measured ingest pressure, not
+before).
 
 ## dashboard
 
