@@ -39,4 +39,4 @@ all of it is reachable from the canon.
 - [x] Recording linked above (#21)
 - [x] design.md per-service sections complete (#26)
 - [x] Hours log finalized ([docs/hours.md](docs/hours.md))
-- [ ] **Repo flipped public** (#30): `gh repo edit --visibility public`
+- [x] **Repo flipped public** (#30): `gh repo edit --visibility public`
