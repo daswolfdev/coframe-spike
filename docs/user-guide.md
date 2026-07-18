@@ -9,7 +9,7 @@ whole interface — nobody types `docker compose`.
 make up              # everything: built, started, healthy — one command
 make ps              # what's running, health, ports
 make logs            # last 100 + live tail (or one: make logs S=api)
-make errors          # same, but only error/exception lines
+make errors          # like logs, error/exception lines only
 make deploy S=api    # ship a change to ONE service: rebuild + restart it
 make down            # tear it all down
 ```
@@ -22,11 +22,12 @@ depth climbing) go straight to the [runbook](runbook.md).
 ## Where things are
 
 - **Dashboard:** <http://localhost:8081> — top pages, p75 LCP trend, active
-  experiments; the ops strip shows queue depth and data freshness.
-  `?fixture=1` renders canned data if you want the page without traffic.
+  experiments (a queue-depth ops strip lands with #20). `?fixture=1` renders
+  canned data; `python3 tools/loadgen.py` generates real traffic.
 - **API:** <http://localhost:8000> — `POST /events` (SDK ingest),
-  `GET /config/{site_id}` (SDK config), `/healthz`. Read endpoints for the
-  dashboard land with the worker's aggregates.
+  `GET /config/{site_id}` (SDK config), `/healthz`, and `/stats` (queue depth
+  + data freshness — today's ops signal). Read endpoints for the dashboard
+  land with the worker's aggregates.
 - Each service owns its host port in its own `services/<name>/compose.yaml`.
 
 ## Changing SDK config (experiments, sampling)

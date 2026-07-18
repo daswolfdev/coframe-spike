@@ -23,21 +23,27 @@ the one the [runbook](runbook.md) documents; they are written as a pair.
 | 0:00–0:45 | Cold start | Fresh terminal: `make up`; `make ps` → three services healthy | Hard constraint #1: one command, laptop only |
 | 0:45–1:30 | Life | Load generator starts (#18); dashboard shows top pages + p75 moving; one `curl` of `GET /config/{site_id}` | The product works; both API paths exercised |
 | 1:30–2:30 | Deploy | Small visible change; `make deploy S=api`; `make ps` uptimes show only api restarted; change is live | Deploys without SSH; single-service deploy |
-| 2:30–3:45 | Failure | `docker kill` the worker; ops strip: queue depth climbing, aggregates stale; load gen still getting 200s | Observability catches it; queue decouples ingest; no data loss while down |
+| 2:30–3:45 | Failure | `docker kill` the worker; ops strip: queue depth climbing, aggregates stale; load gen still getting 202s | Observability catches it; queue decouples ingest; no data loss while down |
 | 3:45–4:30 | Recover | Follow [runbook.md](runbook.md) on screen: `make ps` → `make logs S=worker` → `make deploy S=worker`; depth drains to 0; dashboard catches up; sent-count = aggregated-count | Recovery is a documented platform verb; zero events lost |
 | 4:30–5:00 | Wrap | Point at [adding-a-service.md](adding-a-service.md) + the runbook just used; `make down` | 4th-service pathway exists; clean teardown |
 
 ## Prerequisites (tracked as issues)
 
-- [#18](https://github.com/daswolfdev/coframe-spike/issues/18) — load
+- [ ] [#11](https://github.com/daswolfdev/coframe-spike/issues/11) — the
+  worker itself: the failure's subject, and the source of the aggregates
+  every dashboard beat reads
+- [ ] [#15](https://github.com/daswolfdev/coframe-spike/issues/15) — api
+  read endpoints the dashboard calls (`/sites`, pages, trend)
+- [x] [#18](https://github.com/daswolfdev/coframe-spike/issues/18) — load
   generator with a sent-count, so the no-loss claim is checkable:
   `python3 tools/loadgen.py` (stdlib only; Ctrl-C prints the final count)
-- [#19](https://github.com/daswolfdev/coframe-spike/issues/19) — API ops
-  read surface (queue depth + last-aggregate time)
-- [#20](https://github.com/daswolfdev/coframe-spike/issues/20) — dashboard
-  ops strip rendering it
-- [#21](https://github.com/daswolfdev/coframe-spike/issues/21) — README
-  linking the recording; runbook filled for exactly this failure
+- [x] [#19](https://github.com/daswolfdev/coframe-spike/issues/19) — API ops
+  read surface (queue depth + last-aggregate time): `GET /stats`
+- [ ] [#20](https://github.com/daswolfdev/coframe-spike/issues/20) — dashboard
+  ops strip rendering it (until it lands, `curl /stats` on screen instead)
+- [ ] [#21](https://github.com/daswolfdev/coframe-spike/issues/21) — README
+  linking the recording; runbook filled for exactly this failure (runbook
+  half: done)
 
 ## Recording rules
 

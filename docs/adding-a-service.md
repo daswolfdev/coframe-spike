@@ -10,6 +10,9 @@ Worked example: adding a service called `alerts`.
 1. **Scaffold it** *(1 min)*
    `make new S=alerts` — copies the template and renames it (compose
    service name and build context both match the directory automatically).
+   The name must be a DNS label — lowercase letters/digits/hyphens, starting
+   with a letter, not ending in a hyphen — because it doubles as the
+   service's network alias; `make new` rejects anything else.
 2. **Pick a port, if it listens** *(2 min)* — in
    `services/alerts/compose.yaml`, uncomment `ports` and pick a host port
    nothing else publishes (`make ps` shows what's taken; the service owns
