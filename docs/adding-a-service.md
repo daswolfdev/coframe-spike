@@ -7,14 +7,13 @@ register anywhere. The starting point is
 
 Worked example: adding a service called `alerts`.
 
-1. **Copy the template** *(1 min)*
-   `cp -r services/_template services/alerts`
-2. **Edit `services/alerts/compose.yaml`** *(3 min)* — three changes:
-   the service name `_template` → `alerts` (must match the directory name),
-   the build context `./services/_template` → `./services/alerts`, and — if
-   the service listens — uncomment `ports` and pick a host port nothing else
-   publishes (`make ps` shows what's taken; the service owns its port, there
-   is no central registry).
+1. **Scaffold it** *(1 min)*
+   `make new S=alerts` — copies the template and renames it (compose
+   service name and build context both match the directory automatically).
+2. **Pick a port, if it listens** *(2 min)* — in
+   `services/alerts/compose.yaml`, uncomment `ports` and pick a host port
+   nothing else publishes (`make ps` shows what's taken; the service owns
+   its port, there is no central registry).
 3. **Replace the Dockerfile** *(5 min)* — whatever builds and runs your
    service. Log to stdout; no log files.
 4. **Make the healthcheck real** *(2 min)* — replace `["CMD", "true"]` with a
@@ -24,7 +23,7 @@ Worked example: adding a service called `alerts`.
 6. **Verify** *(1 min)*
    `make ps` shows it healthy; `make logs S=alerts` follows its logs.
 
-Total: ~14 minutes. Platform files touched: **none**.
+Total: ~13 minutes. Platform files touched: **none**.
 
-Maintainers: `make smoke` mechanically re-proves this pathway (copies the
-template, deploys it, waits for healthy, tears down).
+Maintainers: `make smoke` mechanically re-proves this pathway (scaffolds
+via `make new`, deploys it, waits for healthy, tears down).

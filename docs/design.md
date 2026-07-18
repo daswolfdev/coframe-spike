@@ -10,8 +10,10 @@ argument. Still to land with its service:
 
 ## Platform
 
-**Shape:** a root Makefile fronting Docker Compose. Five team verbs
-(`up/down/ps/logs/deploy`) plus maintainer `smoke`. The Makefile discovers
+**Shape:** a root Makefile fronting Docker Compose. Seven team verbs
+(`up/down/ps/logs/errors/deploy/new`) plus maintainer `smoke`; `new` scaffolds a
+service from the template, and `smoke` deploys through that same scaffold,
+so the pathway is re-proven on every smoke run. The Makefile discovers
 `services/*/compose.yaml` fragments (underscore-prefixed excluded) and merges
 them with `platform/compose.base.yaml` into one compose project (`perfmon`).
 State lives nowhere yet — no services run; shared infra (queue, db) arrives
