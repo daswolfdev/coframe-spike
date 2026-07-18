@@ -2,7 +2,9 @@
 
 Judged against [OBJECTIVE.md](../OBJECTIVE.md). Reviewed under
 [SPEC-REVIEW.md](SPEC-REVIEW.md). This document grows a section per service
-as each lands; today it covers the platform.
+as each lands; today it covers the platform. The three product services —
+[api](../services/api/README.md), [worker](../services/worker/README.md),
+[dashboard](../services/dashboard/README.md) — land in follow-up PRs.
 
 ## Platform
 
@@ -34,7 +36,3 @@ mesh (trigger: real port-collision pain or TLS needs); CI (trigger: second
 contributor breaking main); observability stack (trigger: first service PR —
 logs/metrics land with something to observe); queue/db in compose.base.yaml
 (trigger: the api service PR chooses one and justifies it here).
-
----
-
-*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*

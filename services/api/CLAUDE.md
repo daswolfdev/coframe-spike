@@ -73,7 +73,3 @@ the ctx to a global, an env var, a clock, or a database.
   runs real, on fresh files in a random isolated `/tmp/...` dir; any
   **non-SQLite** dependency (a true external, the clock) is narrowed to a
   `Fake*` stand-in with test helper methods. No monkeypatching, ever.
-
----
-
-*Sub-project canon — see the repo root [CLAUDE.md](../../CLAUDE.md).*

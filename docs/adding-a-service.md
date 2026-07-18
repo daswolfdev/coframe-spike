@@ -2,7 +2,8 @@
 
 A service is a directory under `services/` with a `compose.yaml` and a
 `Dockerfile`. The platform discovers it by existence — there is nothing to
-register anywhere.
+register anywhere. The starting point is
+[services/_template/](../services/_template/README.md).
 
 Worked example: adding a service called `alerts`.
 
@@ -27,7 +28,3 @@ Total: ~14 minutes. Platform files touched: **none**.
 
 Maintainers: `make smoke` mechanically re-proves this pathway (copies the
 template, deploys it, waits for healthy, tears down).
-
----
-
-*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*

@@ -195,8 +195,3 @@ Tests then call commands (or `create_app(ctx)` via `TestClient` for endpoint
 tests) exactly as production does, and assert against the real database or
 the fakes' helpers. No monkeypatching, no patch targets. If a test needs to
 patch, the design has leaked a dependency around the ctx.
-
----
-
-*Part of the API sub-project canon — [../CLAUDE.md](../CLAUDE.md); repo root
-[../../../CLAUDE.md](../../../CLAUDE.md).*
