@@ -15,7 +15,7 @@ type Stats struct {
 	eventsConsumed uint64
 	batchesApplied uint64
 	lastTickUnix   int64
-	lastFlushUnix  int64
+	lastFlushMs    int64
 	durs           [ringSize]time.Duration
 	nDurs          int // total flushes recorded; ring index = nDurs % ringSize
 }
@@ -37,7 +37,7 @@ func (s *Stats) SawFlush(now time.Time, events int, d time.Duration) {
 	defer s.mu.Unlock()
 	s.eventsConsumed += uint64(events)
 	s.batchesApplied++
-	s.lastFlushUnix = now.Unix()
+	s.lastFlushMs = now.UnixMilli()
 	s.durs[s.nDurs%ringSize] = d
 	s.nDurs++
 }
@@ -53,7 +53,8 @@ type Snapshot struct {
 	EventsConsumedTotal uint64  `json:"events_consumed_total"`
 	BatchesApplied      uint64  `json:"batches_applied"`
 	QueueDepth          int64   `json:"queue_depth"`
-	LastFlushUnix       int64   `json:"last_flush_unix"`
+	// Epoch ms — every HTTP surface speaks ms (the api's /stats does too).
+	LastFlushMs         int64   `json:"last_flush_ms"`
 	FlushP50Ms          float64 `json:"flush_p50_ms"`
 	FlushP95Ms          float64 `json:"flush_p95_ms"`
 }
@@ -75,7 +76,7 @@ func (s *Stats) Snapshot(queueDepth int64) Snapshot {
 		EventsConsumedTotal: s.eventsConsumed,
 		BatchesApplied:      s.batchesApplied,
 		QueueDepth:          queueDepth,
-		LastFlushUnix:       s.lastFlushUnix,
+		LastFlushMs:         s.lastFlushMs,
 		FlushP50Ms:          pct(50),
 		FlushP95Ms:          pct(95),
 	}

@@ -224,6 +224,11 @@ func TestStatsSnapshot(t *testing.T) {
 	if snap.QueueDepth != 0 {
 		t.Fatalf("queue_depth = %d, want 0", snap.QueueDepth)
 	}
+	// Failure mode this guards: last_flush regressing to epoch seconds —
+	// every HTTP surface speaks ms (#61); seconds-scale values are ~1e9.
+	if snap.LastFlushMs < now.UnixMilli()-int64(time.Minute/time.Millisecond) {
+		t.Fatalf("last_flush_ms = %d, not ms-scale recent", snap.LastFlushMs)
+	}
 	if !l.Healthy(now) {
 		t.Fatal("Healthy = false right after a tick")
 	}
