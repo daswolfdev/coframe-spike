@@ -1,0 +1,63 @@
+[project]
+name = "api"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.139.2",
+    "pydantic>=2.13.4",
+    "uvicorn[standard]>=0.51.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.7.0",
+    "pytest>=9.1.1",
+    "ruff>=0.15.22",
+    "ty>=0.0.61",
+]
+
+[build-system]
+requires = ["uv_build>=0.11,<0.13"]
+build-backend = "uv_build"
+
+# Flat layout: the package is ./api (not src/api). Modules live in a package
+# so `import secrets` (used by websockets/starlette) keeps resolving to the
+# stdlib — a top-level secrets.py would shadow it process-wide.
+[tool.uv.build-backend]
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D1",     # undocumented-* — docstrings where they earn their keep, not everywhere
+    "COM812", # trailing-comma rule conflicts with the formatter
+    "TC",     # TYPE_CHECKING-only imports break FastAPI/Pydantic runtime annotation use
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert is the point of a test
+    "PLR2004", # literal expectations in assertions are fine
+    "INP001",  # tests are found via rootdir, not imported as a package
+]
+"tests/conftest.py" = [
+    "PT028", # test_ctx_create is the canon helper name, not a test — conftest is never collected
+]
+
+# Strict, no exceptions (canon): warnings are failures; needing an ignore
+# comment means redesign, and a stale one is itself an error.
+[tool.ty.terminal]
+error-on-warning = true
+
+[tool.ty.rules]
+unused-ignore-comment = "error"
+possibly-unresolved-reference = "error"
