@@ -84,3 +84,7 @@ End every review with one of:
   the first failed gate.
 
 Keep reviews short. Three cited findings beat ten vibes.
+
+---
+
+*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*

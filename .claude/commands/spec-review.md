@@ -16,3 +16,5 @@ Review a spec as a staff engineer.
    finding, and end with its verdict format.
 3. Review only — do not edit the spec or any other file. State the target
    spec's path at the top of the review.
+
+Apply the house rules and canon in [CLAUDE.md](../../CLAUDE.md) while reviewing.

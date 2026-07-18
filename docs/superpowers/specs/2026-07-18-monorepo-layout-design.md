@@ -124,3 +124,7 @@ walkthrough.
 - `make up`, `make ps`, `make down` run clean on the empty platform.
 - `make smoke` proves discovery and the service contract end-to-end (template
   copy → up → healthy → torn down), repeatably — not a one-shot manual test.
+
+---
+
+*Part of the repo canon — see [CLAUDE.md](../../../CLAUDE.md).*
