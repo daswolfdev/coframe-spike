@@ -78,15 +78,18 @@ stated trigger. Internals follow the Ctx-first canon
 the dashboard (#15) land with the worker's aggregates.
 
 **Queue contract (api↔worker):** typed columns (`id` = claim order,
-`site_id`, `page_url`, `lcp_ms`, `ts_ms`, `session_id`, `received_at_ms`),
-**delete-on-claim, at-most-once**: the worker claims with
-`BEGIN IMMEDIATE; SELECT … ORDER BY id LIMIT n; DELETE …; COMMIT` and then
-aggregates. A worker crash drops at most one claimed batch of monitoring
-samples — invisible in a p75 dashboard; revisit trigger: events that carry
-per-row value (billing). Rejected alternative: status-column at-least-once
-queue — reclaim timers, dedup, an extra index, all buying a guarantee RUM
-sampling doesn't need. (Why a SQLite table at all: the
-[Queue section](#queue-a-sqlite-table) above.)
+`site_id`, `page_url`, `lcp_ms`, `ts_ms`, `session_id`, `received_at_ms`,
+plus consumer-owned `claim_id`, NULL = unclaimed — the api never touches
+it), **effectively-once** (negotiated on #11): the worker claims by marking
+`claim_id` under `BEGIN IMMEDIATE`, folds into `agg.db` alongside a batch
+marker in one transaction, then deletes by `claim_id`; a crash at any point
+recovers exactly once from the marker at startup — no reclaim timers, no
+dedup index. Rejected alternatives: delete-on-claim at-most-once (simplest,
+but silently drops a batch per crash, and its consumer-side repair is
+unsound — SQLite reuses rowids once the table drains empty); timer-based
+at-least-once (reclaim timers + dedup buying nothing the marker doesn't).
+(Why a SQLite table at all: the [Queue section](#queue-a-sqlite-table)
+above.)
 
 **Config as code:** site SDK config (sampling rate, experiments) is
 hardcoded in `cfg.py` — OBJECTIVE.md sanctions an in-memory map, git is the
