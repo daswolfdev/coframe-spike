@@ -3,6 +3,8 @@
 // ?fixture=1 serves committed sample data through the same fetch seam.
 
 const POLL_MS = 5000;
+const CONFIG_POLL_MS = 60000; // config is nearly static — spare the endpoint
+const FETCH_TIMEOUT_MS = 4000; // < POLL_MS: hung requests die before the next tick
 const FIXTURE = new URLSearchParams(location.search).has('fixture');
 
 const state = {
@@ -12,41 +14,64 @@ const state = {
 
 let fixtureData = null;
 
-// 404 (endpoint or site not there yet) → fallback, rendered as "no data yet".
-// Network errors / 5xx (api down) → throw, rendered as the stale-data banner.
+// 404 (endpoint or site not there yet) → fallback, rendered as "no data yet",
+// with a console.warn so a persistent 404 (typo, renamed route) stays findable.
+// Network errors / 5xx / timeouts (api down) → throw, rendered as the banner.
+// fixture.json is keyed by exact request path — no second URL grammar here.
 async function get(path, fallback) {
   if (FIXTURE) {
     if (!fixtureData) fixtureData = await (await fetch('fixture.json')).json();
-    if (path === '/sites') return fixtureData.sites;
-    const bySite = path.match(/^\/sites\/([^/]+)\/(pages|trend)$/);
-    if (bySite) return fixtureData[bySite[2]][bySite[1]] ?? fallback;
-    const config = path.match(/^\/config\/([^/]+)$/);
-    if (config) return fixtureData.config[config[1]] ?? fallback;
+    return fixtureData[path] ?? fallback;
+  }
+  // the '/api' prefix must match the proxy mount in nginx.conf
+  const r = await fetch('/api' + path, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  if (r.status === 404) {
+    console.warn(`GET ${path} → 404, rendering "no data yet"`);
     return fallback;
   }
-  const r = await fetch('/api' + path);
-  if (r.status === 404) return fallback;
   if (!r.ok) throw new Error(`${r.status} on ${path}`);
   return r.json();
 }
 
+// Single-flight token: a newer refresh (poll tick or site switch) supersedes
+// an in-flight one, so a slow response can never overwrite fresher state.
+let refreshSeq = 0;
+let configFetchedAt = 0;
+let configSite = null;
+
 async function refresh() {
+  const seq = ++refreshSeq;
   try {
-    state.sites = await get('/sites', []);
+    const sites = await get('/sites', []);
+    if (seq !== refreshSeq) return;
+    state.sites = sites;
     if (!state.sites.includes(state.site)) state.site = state.sites[0] ?? null;
     if (state.site) {
-      [state.pages, state.trend, state.config] = await Promise.all([
-        get(`/sites/${state.site}/pages`, []),
-        get(`/sites/${state.site}/trend`, []),
-        get(`/config/${state.site}`, null),
+      const site = encodeURIComponent(state.site);
+      const wantConfig = state.site !== configSite ||
+        Date.now() - configFetchedAt >= CONFIG_POLL_MS;
+      const [pages, trend, config] = await Promise.all([
+        get(`/sites/${site}/pages`, []),
+        get(`/sites/${site}/trend`, []),
+        wantConfig ? get(`/config/${site}`, null) : state.config,
       ]);
+      if (seq !== refreshSeq) return;
+      state.pages = pages;
+      state.trend = trend;
+      state.config = config;
+      if (wantConfig) {
+        configFetchedAt = Date.now();
+        configSite = state.site;
+      }
     } else {
       state.pages = []; state.trend = []; state.config = null;
     }
     state.error = false;
     state.updated = new Date();
-  } catch {
+  } catch (err) {
+    if (seq !== refreshSeq) return; // superseded — the newer run reports
     state.error = true; // keep last-rendered data; the banner marks it stale
+    console.error('refresh failed:', err);
   }
   render();
 }
@@ -72,7 +97,13 @@ function ago(ms) {
 }
 
 function render() {
-  $('banner').hidden = !state.error;
+  const banner = $('banner');
+  banner.hidden = !state.error;
+  if (state.error) {
+    banner.textContent = state.updated
+      ? '⚠ API unreachable — showing last loaded data, which may be stale.'
+      : '⚠ API unreachable — no data loaded yet.';
+  }
   $('updated').textContent =
     state.updated ? `updated ${state.updated.toLocaleTimeString()}` : '';
   renderSites();
@@ -119,9 +150,9 @@ function renderExperiments() {
     const row = el('div', null, 'exp');
     row.append(
       el('span', null, 'swatch'),
-      el('strong', x.id),
-      el('span', x.variants.join(' / '), 'empty'),
-      el('span', `${Math.round(x.traffic * 100)}% of traffic`, 'empty'));
+      el('strong', x.id ?? '(unnamed)'),
+      el('span', (x.variants ?? []).join(' / '), 'empty'),
+      el('span', x.traffic == null ? '' : `${Math.round(x.traffic * 100)}% of traffic`, 'empty'));
     return row;
   });
   if (state.config?.sampling_rate != null) {

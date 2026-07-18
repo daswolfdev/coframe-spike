@@ -4,7 +4,7 @@
 **Status:** Approved (staff-eng review passed; both nits adopted — stale-data
 banner wording, fixture-sync discipline noted in the PR)
 **Branch:** `dashboard` → PR into `main`
-**Issues:** #11 (service); read-API contract to be filed for the api owner
+**Issues:** #11 (service); #15 (the read-API contract, filed for the api owner)
 
 ## Goal
 
@@ -34,7 +34,7 @@ All under `/api/` (dashboard-relative; nginx strips the prefix):
 | `GET /api/sites` | `["demo", ...]` — sites with data or config |
 | `GET /api/sites/{site_id}/pages` | `[{page_url, count, p75_ms, last_seen_ms}]`, sorted by `count` desc, top 20 |
 | `GET /api/sites/{site_id}/trend` | `[{bucket_start_ms, p75_ms}]`, time-ascending — *shape only*; bucket width is the worker's decision, the dashboard renders whatever points arrive |
-| `GET /api/config/{site_id}` | already exists per OBJECTIVE.md (`experiments`, `sampling_rate`) |
+| `GET /api/config/{site_id}` | `{sampling_rate, experiments: [{id, variants: [...], traffic}]}` — endpoint per OBJECTIVE.md; the experiment sub-shape is part of the #15 contract |
 
 Contract rules: fields are added, never repurposed; absent endpoint (404/502)
 and empty array are both first-class renders ("no data yet"), so the
@@ -43,8 +43,8 @@ fail later — one behavior, two causes, zero special cases.
 
 ## Design
 
-**Serving: nginx:alpine, no build step.** Static `index.html` + one ES
-module + one stylesheet, copied into the image. `/healthz` is a static `200`
+**Serving: nginx:alpine, no build step.** Static `index.html` (styles
+inline) + one ES module, copied into the image. `/healthz` is a static `200`
 location. Rejected alternative: a framework + bundler (React/Vite) — a
 toolchain and build artifacts to operate for one page of tables and a
 sparkline; over-engineering per the grading lens.
