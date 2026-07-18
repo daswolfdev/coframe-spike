@@ -56,6 +56,8 @@ the current branch's spec.
 Every doc in the repo hangs off this file (the doc-reachable gate enforces
 it — link new docs from here or from a doc this reaches):
 
+- [README.md](README.md) — the front door: quickstart, demo, submission
+  checklist
 - [docs/design.md](docs/design.md) — system design: platform shape, stack
   choices, rejected alternatives; grows a section per service
 - [docs/adding-a-service.md](docs/adding-a-service.md) — the <15-minute
@@ -64,6 +66,7 @@ it — link new docs from here or from a doc this reaches):
 - [docs/runbook.md](docs/runbook.md) — failure diagnosis and recovery
 - [docs/demo.md](docs/demo.md) — the 5-minute recording: script, locked
   decisions, prerequisites
+- [docs/hours.md](docs/hours.md) — honest hours report, appended per session
 - [docs/reports/README.md](docs/reports/README.md) — measurement reports
 - [docs/superpowers/README.md](docs/superpowers/README.md) — design specs and
   implementation plans (the paper trail behind each PR)

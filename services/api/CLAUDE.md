@@ -33,6 +33,11 @@ the ctx to a global, an env var, a clock, or a database.
 
 ### Layout (fixed)
 
+All modules live in the **`api/` package** (`services/api/api/…`), never as
+top-level files: a top-level `secrets.py` would shadow the stdlib `secrets`
+module for the whole process (websockets/starlette import it). Filenames
+below are unchanged by this; imports are `from api.ctx import Ctx`.
+
 | Path | Role |
 |---|---|
 | `app.py` | `create_app(ctx) -> FastAPI` — the only place routes are registered |
@@ -52,6 +57,9 @@ the ctx to a global, an env var, a clock, or a database.
 - **All state access flows through the ctx** — a command reaches its SQLite
   connections and repos only via `ctx`; nothing opens its own connection or
   touches a global.
+- **Multi-statement writes only via `ctx.db.transaction()`.** Connections are
+  shared across the threadpool; a bare `BEGIN` from two threads interleaves
+  into one transaction. Never issue `BEGIN` yourself.
 - **Repos are earned, not default.** A repo exists only for a true
   third-party external (e.g. the queue) or a DB op shared across multiple
   commands. A single-command SQL op lives inline in that command, run on the

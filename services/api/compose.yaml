@@ -1,0 +1,19 @@
+# Service contract: name matches directory, real healthcheck, stdout logs,
+# service owns its host port (8000).
+services:
+  api:
+    build:
+      context: ./services/api
+    ports:
+      - "8000:8000"
+    volumes:
+      - data:/data # platform-owned shared volume (platform/compose.base.yaml)
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"
+      interval: 5s
+      timeout: 3s
+      retries: 5
