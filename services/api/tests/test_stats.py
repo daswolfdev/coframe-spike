@@ -13,9 +13,10 @@ EVENT = {
     "session_id": "s-1",
 }
 
-# The worker-owned agg.db contract as pinned in the worker spec
-# (docs/superpowers/specs/2026-07-18-worker-design.md): last_seen is epoch
-# SECONDS; the api converts to ms. Only the columns the api reads appear here.
+# The worker-owned agg.db contract as relayed from the worker spec (not yet
+# merged; lands at docs/superpowers/specs/2026-07-18-worker-design.md —
+# re-verify this DDL against it then): last_seen is epoch SECONDS; the api
+# converts to ms. Only the columns the api reads appear here.
 WORKER_PAGE_CURRENT = """\
 CREATE TABLE page_current (
     site_id TEXT, page_url TEXT,
