@@ -1,12 +1,12 @@
 # Runbook — worker down (stale aggregates, growing queue)
 
-The failure this platform is designed to survive, and the one demonstrated in
-the [recording](demo.md). One page; follow top to bottom.
+The failure this platform is designed to survive. One page; follow top to
+bottom.
 
 Queue depth and freshness are live via `curl localhost:8000/stats` — the
-platform-health surface this runbook and the demo both use (a dashboard ops
-strip was deliberately deferred; trigger: the first platform-health consumer
-who doesn't live in a terminal).
+platform-health surface this runbook uses (a dashboard ops strip was
+deliberately deferred; trigger: the first platform-health consumer who
+doesn't live in a terminal).
 
 ## Symptoms
 
@@ -58,8 +58,9 @@ Then watch the drain:
 
 Events queued while the worker was down were buffered in `queue.db`, not
 dropped. After depth returns to ~0, confirm the aggregates moved forward
-(top-pages counts increased over pre-incident values). During the demo this
-is exact: load-generator sent-count equals aggregated event count.
+(top-pages counts increased over pre-incident values). With
+`tools/loadgen.py` running this check is exact: its sent-count equals the
+aggregated event count.
 
 ## If recovery fails
 

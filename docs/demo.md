@@ -1,5 +1,8 @@
 # The 5-Minute Demo — Script
 
+**Recorded:** <https://www.loom.com/share/bed99531c55749bca3eb12f3a3507a2e>
+(linked from the [README](../README.md)).
+
 The recording is the deliverable the graders watch first
 ([OBJECTIVE.md](../OBJECTIVE.md): "deploy a service, show observability,
 induce a failure, recover from it"). Every beat below must be *visibly true*
@@ -47,9 +50,8 @@ the one the [runbook](runbook.md) documents; they are written as a pair.
 - [x] ~~#20 — dashboard ops strip~~ — deliberately deferred, not a
   prerequisite: the stats poll loop replaces it on screen (trigger to build:
   the first platform-health consumer who doesn't live in a terminal)
-- [ ] [#21](https://github.com/daswolfdev/coframe-spike/issues/21) — README
-  linking the recording; runbook filled for exactly this failure (runbook
-  half: done)
+- [x] [#21](https://github.com/daswolfdev/coframe-spike/issues/21) — README
+  linking the recording; runbook filled for exactly this failure
 
 ## Recording rules
 

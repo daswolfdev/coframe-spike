@@ -19,7 +19,7 @@ Full day-to-day usage: [docs/user-guide.md](docs/user-guide.md).
 
 ## The 5-minute demo
 
-**Recording: _not yet recorded — link lands here (tracked in #21)._**
+**Recording: <https://www.loom.com/share/bed99531c55749bca3eb12f3a3507a2e>**
 Script and locked decisions: [docs/demo.md](docs/demo.md). The failure it
 demonstrates is documented in [docs/runbook.md](docs/runbook.md).
 
@@ -36,7 +36,7 @@ all of it is reachable from the canon.
 
 ## Submission checklist
 
-- [ ] Recording linked above (#21)
-- [ ] design.md per-service sections complete (#26)
-- [ ] Hours log finalized ([docs/hours.md](docs/hours.md))
+- [x] Recording linked above (#21)
+- [x] design.md per-service sections complete (#26)
+- [x] Hours log finalized ([docs/hours.md](docs/hours.md))
 - [ ] **Repo flipped public** (#30): `gh repo edit --visibility public`
