@@ -103,3 +103,5 @@ the theory of complexity lives in [SOFTWARE-DESIGN.md](./SOFTWARE-DESIGN.md).
 
 *The rules are servants, not masters. Clarity is the goal; when a rule fights
 clarity, clarity wins — and you say why in the review.*
+
+*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*

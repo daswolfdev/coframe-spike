@@ -60,3 +60,8 @@ operate at a 5-person company.
 - [ ] One-page **runbook** — for the failure demonstrated in the recording
 - [ ] All docs under `/docs` as markdown; public GitHub repo; commit naturally
 - [ ] Honest report of hours spent
+
+---
+
+*How work gets executed against this objective — philosophy, discipline,
+tracking — lives in [CLAUDE.md](CLAUDE.md).*
