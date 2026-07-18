@@ -79,9 +79,7 @@ hooks: ## Route git hooks through .githooks (pre-commit runs the gate)
 # and Linux alike.
 smoke:
 	rm -rf services/smoke-test
-	mkdir -p services/smoke-test
-	cp services/_template/Dockerfile services/smoke-test/Dockerfile
-	sed 's/_template/smoke-test/g' services/_template/compose.yaml > services/smoke-test/compose.yaml
+	$(MAKE) new S=smoke-test
 	$(MAKE) up
 	i=0; until [ "$$(docker inspect -f '{{.State.Health.Status}}' perfmon-smoke-test-1 2>/dev/null)" = "healthy" ]; do \
 	  i=$$((i+1)); \
