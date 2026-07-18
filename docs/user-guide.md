@@ -13,6 +13,7 @@ make errors          # like logs, error/exception lines only
 make stats           # live queue depth + freshness, 1s poll (S=worker for its stats)
 make deploy S=api    # ship a change to ONE service: rebuild + restart it
 make down            # tear it all down
+make help            # the full verb list
 ```
 
 Work on a service, then `make deploy S=<name>` — nothing else restarts, no
