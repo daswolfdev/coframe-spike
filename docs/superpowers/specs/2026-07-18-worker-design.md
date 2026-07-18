@@ -180,6 +180,26 @@ exists to get wrong.
   (≈86M rows/day at target); t-digest is a dependency whose tail accuracy
   p75 doesn't need.
 
+## Amendment — 2026-07-18, after the API landed on main
+
+The API merged first (PR #39), so **decision 1 is overtaken: the producer
+now owns the queue schema** (`QUEUE_SCHEMA` in `services/api/api/db.py`),
+and this spec cites it rather than defining it. Worker adopts verbatim:
+table **`queue`** (not `events`), `lcp_ms REAL` (not INTEGER), `ts_ms`
+(not `ts`), plus `received_at_ms`. `eventgen` writes the producer's shape,
+including `received_at_ms`.
+
+One substantive delta is under negotiation on issue #11 before the queue
+package adapts: main's DDL has **no claim column** and its docstring pins
+delete-on-claim (at-most-once), which contradicts decision 4. Effectively-
+once cannot be recovered consumer-side only: plain `INTEGER PRIMARY KEY`
+reuses rowids after the table drains empty, so any re-runnable
+"`DELETE id <= max`" recovery can delete fresh rows with reused ids.
+Requested: additive nullable `claim_id INTEGER` + partial unclaimed index
+(producer-invisible); fallback: `AUTOINCREMENT`. The DDL in this spec's
+Data model section reflects the pre-amendment design and stands corrected
+by main + the #11 outcome.
+
 ## Risks / open questions
 
 - **Stale `page_current.p75_ms` for silent pages:** the trailing-window p75
