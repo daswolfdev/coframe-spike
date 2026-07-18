@@ -4,6 +4,7 @@ from api.ctx import Ctx, ctx_create
 from api.endpoints.config import get_config
 from api.endpoints.events import post_events
 from api.endpoints.healthz import healthz
+from api.endpoints.stats import stats
 
 
 def create_app(ctx: Ctx) -> FastAPI:
@@ -12,6 +13,7 @@ def create_app(ctx: Ctx) -> FastAPI:
     app.post("/events", status_code=202)(post_events(ctx))
     app.get("/config/{site_id}")(get_config(ctx))
     app.get("/healthz")(healthz(ctx))
+    app.get("/stats")(stats(ctx))
     return app
 
 
