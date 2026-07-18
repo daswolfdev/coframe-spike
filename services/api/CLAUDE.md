@@ -9,7 +9,8 @@ directory.
 
 ## Toolchain
 
-- **Python 3.14**, managed by **uv** (latest). All commands go through uv
+- **Python 3.14**, managed by **uv** (minor-pinned in the Dockerfile for
+  reproducible builds; bump the pin deliberately). All commands go through uv
   (`uv sync`, `uv run …`) — never bare `pip` or a system `python`.
 - **FastAPI** + **Pydantic**, latest.
 - **ruff** — linting *and* formatting.

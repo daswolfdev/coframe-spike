@@ -14,8 +14,9 @@ fail() {
   FAILURES=$((FAILURES + 1))
 }
 
-# Tracked plus untracked-but-not-ignored, so new docs are checked before `git add`.
-tracked_md() { git ls-files --cached --others --exclude-standard '*.md'; }
+# Tracked plus untracked-but-not-ignored, so new files are checked before `git add`.
+tracked_files() { git ls-files --cached --others --exclude-standard "$1"; }
+tracked_md() { tracked_files '*.md'; }
 
 # Collapse '.' and '..' segments without touching the filesystem (no realpath
 # on stock macOS). Links escaping the repo root come out mangled and simply
@@ -76,14 +77,31 @@ rule_doc_reachable() {
   done
 }
 
-# The service contract requires a real healthcheck; the template's placeholder
-# probe must not survive the copy (tracked fragments only, so the transient
-# smoke-test copy is exempt).
+# The service contract requires a real healthcheck: a probe that can never
+# fail is not a probe. Catches the template placeholder in any YAML spelling —
+# flow or block list, quoted or not, CMD or CMD-SHELL, true or /bin/true.
+# (The transient smoke-test copy is gitignored, so tracked_files skips it.)
+has_placeholder_probe() {
+  tr ',' ' ' < "$1" | tr -d "[]\"'" | awk '
+    function judge() {
+      gsub(/[[:space:]]+/, " ", items); sub(/^ /, "", items); sub(/ $/, "", items)
+      if (items == "CMD true" || items == "CMD /bin/true" || \
+          items == "CMD-SHELL true" || items == "CMD-SHELL /bin/true" || \
+          items == "true" || items == "/bin/true") found = 1
+      items = ""; intest = 0
+    }
+    /test:/ { t = $0; sub(/.*test:/, "", t); intest = 1; items = t; next }
+    intest && $1 == "-" { sub(/^[[:space:]]*-[[:space:]]*/, ""); items = items " " $0; next }
+    intest { judge() }
+    END { if (intest) judge(); exit found ? 0 : 1 }
+  '
+}
+
 rule_real_healthcheck() {
   local f
-  for f in $(git ls-files 'services/*/compose.yaml'); do
+  for f in $(tracked_files 'services/*/compose.yaml'); do
     case "$f" in services/_*) continue ;; esac
-    if grep -q '"CMD", "true"' "$f"; then
+    if has_placeholder_probe "$f"; then
       fail "$f" real-healthcheck "placeholder probe from the template — replace with a real check"
     fi
   done

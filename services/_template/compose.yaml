@@ -12,11 +12,11 @@ services:
       context: ./services/_template   # ← update path after copying
     init: true
     # ports:
-    #   - "127.0.0.1:8080:8080"       # loopback only, host:container — see rule 4
+    #   - "127.0.0.1:8080:8080" # loopback only — the laptop's LAN has no business here (#32); see rule 4
     logging:
       driver: json-file
       options:
-        max-size: 10m
+        max-size: "10m"
         max-file: "3"
     healthcheck:
       test: ["CMD", "true"]           # ← replace with a real probe (make check enforces this)
