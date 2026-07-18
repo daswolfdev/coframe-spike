@@ -11,6 +11,8 @@
     --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
     --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11, 11, 11, 0.10);
     --series-1: #2a78d6; --warning: #fab219;
+    /* status palette — mode-invariant, validated against both surfaces */
+    --ok: #0ca30c; --bad: #d03b3b;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -32,6 +34,17 @@
   label { color: var(--ink-2); }
   select { font: inherit; }
   .muted { color: var(--muted); font-size: 13px; margin-left: auto; }
+  .ops {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-top: 16px; padding: 8px 16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .ops .cell { display: flex; align-items: center; gap: 6px; }
+  .ops .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .ops .dot.ok { background: var(--ok); }
+  .ops .dot.bad { background: var(--bad); }
+  .ops .label { color: var(--muted); font-size: 13px; }
+  .ops strong { font-variant-numeric: tabular-nums; }
   #banner {
     margin-top: 16px; padding: 8px 12px;
     background: var(--surface); border: 1px solid var(--border);
@@ -68,6 +81,7 @@
   <label>site <select id="site"></select></label>
   <span id="updated" class="muted"></span>
 </header>
+<div id="ops" class="ops" hidden></div>
 <p id="banner" hidden>&#9888; API unreachable &mdash; showing last loaded data, which may be stale.</p>
 <main>
   <section>

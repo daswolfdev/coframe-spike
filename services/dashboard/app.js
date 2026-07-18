@@ -5,10 +5,11 @@
 const POLL_MS = 5000;
 const CONFIG_POLL_MS = 60000; // config is nearly static — spare the endpoint
 const FETCH_TIMEOUT_MS = 4000; // < POLL_MS: hung requests die before the next tick
+const STALE_MS = 30000; // aggregates red after six missed polls — see the ops-strip spec
 const FIXTURE = new URLSearchParams(location.search).has('fixture');
 
 const state = {
-  sites: [], site: null, pages: [], trend: [], config: null,
+  sites: [], site: null, pages: [], trend: [], config: null, stats: null,
   error: false, updated: null,
 };
 
@@ -42,9 +43,13 @@ let configSite = null;
 async function refresh() {
   const seq = ++refreshSeq;
   try {
-    const sites = await get('/sites', []);
+    const [sites, stats] = await Promise.all([
+      get('/sites', []),
+      get('/stats', null), // site-independent; 404 (older api) → "no data yet"
+    ]);
     if (seq !== refreshSeq) return;
     state.sites = sites;
+    state.stats = stats;
     if (!state.sites.includes(state.site)) state.site = state.sites[0] ?? null;
     if (state.site) {
       const site = encodeURIComponent(state.site);
@@ -88,6 +93,16 @@ function el(tag, text, className) {
 const fmtInt = (n) => n.toLocaleString('en-US');
 const fmtMs = (ms) => `${Math.round(ms).toLocaleString('en-US')} ms`;
 
+// Seconds-precision age for the ops strip: staleness must read exactly on
+// video, and ago()'s "just now" would hide the whole 0–60s window that
+// STALE_MS lives in.
+function fmtAge(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  return `${Math.floor(s / 3600)}h ago`;
+}
+
 function ago(ms) {
   const s = Math.max(0, (Date.now() - ms) / 1000);
   if (s < 60) return 'just now';
@@ -106,10 +121,42 @@ function render() {
   }
   $('updated').textContent =
     state.updated ? `updated ${state.updated.toLocaleTimeString()}` : '';
+  renderOps();
   renderSites();
   renderPages();
   renderTrend();
   renderExperiments();
+}
+
+// The ops strip shows evidence, not diagnosis ("worker down" is the runbook's
+// call, not this page's): api reachability, queue depth, aggregate age.
+function renderOps() {
+  const host = $('ops');
+  host.hidden = false;
+  const cell = (label, valueNode, dotClass) => {
+    const c = el('span', null, 'cell');
+    if (dotClass) c.append(el('span', null, `dot ${dotClass}`));
+    c.append(el('span', label, 'label'), valueNode);
+    return c;
+  };
+  const val = (text) => el('strong', text);
+  const na = (text) => el('span', text, 'empty'); // placeholder, muted like every empty state
+  const s = state.stats;
+  const cells = [state.error
+    ? cell('api', val('unreachable'), 'bad')
+    : cell('api', val('ok'), 'ok')];
+  cells.push(cell('queue', s ? val(fmtInt(s.queue_depth)) : na('no data yet')));
+  if (!s) {
+    cells.push(cell('aggregates', na('no data yet')));
+  } else if (s.last_aggregate_ms == null) {
+    cells.push(cell('aggregates', na('none yet')));
+  } else {
+    // Age vs the browser clock: api and browser share the laptop, so skew is
+    // negligible — the same trade ago() already makes.
+    const age = Date.now() - s.last_aggregate_ms;
+    cells.push(cell('aggregates', val(fmtAge(age)), age > STALE_MS ? 'bad' : 'ok'));
+  }
+  host.replaceChildren(...cells);
 }
 
 function renderSites() {

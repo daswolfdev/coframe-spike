@@ -14,5 +14,11 @@ api service (same-origin; the api's address is stated only in
   pre-data verification path. It must change in the same commit as any
   contract change.
 - Holds no state: pure derived view; refresh rebuilds everything.
+- Ops strip (issue #20) under the header reads `GET /api/stats`: api
+  reachability, queue depth, aggregate age (red past 30s). Evidence, not
+  diagnosis — interpreting the signals is the
+  [runbook](../../docs/runbook.md)'s job. In fixture mode the timestamps are
+  past, so `?fixture=1` permanently shows the stale/red state — the standing
+  visual check of the failure rendering.
 
 Spec: [2026-07-18-dashboard-design.md](../../docs/superpowers/specs/2026-07-18-dashboard-design.md).
