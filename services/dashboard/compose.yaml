@@ -1,0 +1,13 @@
+# dashboard — static frontend. Owns host port 8081 (service-owned, no central
+# registry — see services/_template/compose.yaml rule 4).
+services:
+  dashboard:
+    build:
+      context: ./services/dashboard
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
