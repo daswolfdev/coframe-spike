@@ -3,11 +3,17 @@
 The failure this platform is designed to survive, and the one demonstrated in
 the [recording](demo.md). One page; follow top to bottom.
 
+Queue depth and freshness are live via `curl localhost:8000/stats` — the
+platform-health surface this runbook and the demo both use (a dashboard ops
+strip was deliberately deferred; trigger: the first platform-health consumer
+who doesn't live in a terminal).
+
 ## Symptoms
 
 - Dashboard aggregates stop updating — last-updated timestamp ages visibly;
-  **queue depth climbs** (`curl localhost:8000/stats`, or the ops strip once
-  #20 lands) instead of hovering near zero.
+  **queue depth climbs** (`curl localhost:8000/stats`; poll it live with
+  `while :; do curl -s localhost:8000/stats; echo; sleep 1; done`) instead
+  of hovering near zero.
 - Event ingestion is **unaffected**: `POST /events` keeps returning 202/200.
   If ingestion is *also* failing, this is not your incident — check the api.
 

@@ -153,6 +153,12 @@ traffic. Load at ceiling: 1,000 users polling every 5s ≈ 600 req/s of
 static/proxy traffic — nginx territory; api-side reads have measured
 headroom (~9,300 QPS, [benchmark report](reports/2026-07-18-sqlite-wal-throughput.md)).
 
+**Deliberately not built:** an ops strip on this page (#20) — platform
+health deliberately stays on the terminal surface the team already lives in
+(`GET /stats`, `make ps/logs/errors`), which is also what the
+[demo](demo.md) and [runbook](runbook.md) use. Trigger to build it: the
+first platform-health consumer who doesn't live in a terminal.
+
 ## worker
 
 **Shape:** Go binary; consumes the producer-owned `queue` table (batch

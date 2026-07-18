@@ -22,7 +22,8 @@ depth climbing) go straight to the [runbook](runbook.md).
 ## Where things are
 
 - **Dashboard:** <http://localhost:8081> — top pages, p75 LCP trend, active
-  experiments (a queue-depth ops strip lands with #20). `?fixture=1` renders
+  experiments (platform health deliberately stays in the terminal:
+  `curl localhost:8000/stats`). `?fixture=1` renders
   canned data; `python3 tools/loadgen.py` generates real traffic.
 - **API:** <http://localhost:8000> — `POST /events` (SDK ingest),
   `GET /config/{site_id}` (SDK config), `/healthz`, and `/stats` (queue depth
