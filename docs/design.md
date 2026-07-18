@@ -3,8 +3,9 @@
 Judged against [OBJECTIVE.md](../OBJECTIVE.md). Reviewed under
 [SPEC-REVIEW.md](SPEC-REVIEW.md). This document grows a section per service
 as each lands — each service's PR brings its own section. Landed so far:
-platform, the queue choice, [api](../services/api/README.md) (write/config
-surface), [dashboard](../services/dashboard/README.md),
+platform, the queue choice, [api](../services/api/README.md) (ingest,
+config, and the dashboard read surface),
+[dashboard](../services/dashboard/README.md),
 [worker](../services/worker/README.md) (queue consumer / aggregator), and
 the scaling argument.
 
@@ -129,7 +130,7 @@ not before).
 
 **Shape:** nginx (1.31-alpine, minor-pinned) serving one static page (plain HTML + one ES module +
 inline SVG, no build step) on host port 8081, proxying `/api/` to the api
-same-origin. In: the read contract proposed in #15 (`/sites`,
+same-origin. In: the read contract negotiated on #15 (`/sites`,
 `/sites/{id}/pages`, `/sites/{id}/trend`, `/config/{id}`). Out: pixels.
 **State: none** — pure derived view; refresh rebuilds everything; nothing to
 back up and nothing for the runbook. (The nginx `/api/` location is a
