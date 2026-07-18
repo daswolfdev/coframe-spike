@@ -1,7 +1,10 @@
 # Dashboard Ops Strip — Design
 
 **Date:** 2026-07-18
-**Status:** Draft (pending staff-eng review)
+**Status:** Approved (staff-eng review passed; all three nits adopted —
+`STALE_MS` named once beside `POLL_MS`, api cell driven off the existing
+`state.error` with no second error flag, client-clock-skew caveat noted in a
+code comment where age is computed)
 **Branch:** `dashboard-ops-strip` → PR into `main`
 **Issues:** #20 (this work); #19 (the `/stats` contract it reads); #10
 (observability convention it advances)
