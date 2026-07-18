@@ -1,0 +1,19 @@
+# THE SERVICE CONTRACT — a service is a directory under services/ with this
+# file and a Dockerfile. Rules:
+#   1. The service name below MUST equal the directory name.
+#   2. Define a healthcheck (make smoke and make ps rely on it).
+#   3. Log to stdout only — the platform owns log collection.
+#   4. Need a host port? Pick one no other service publishes (`make ps`
+#      shows what's taken), then uncomment `ports`. The service owns its
+#      host port; there is no central port registry.
+services:
+  _template:                          # ← rename to your directory name
+    build:
+      context: ./services/_template   # ← update path after copying
+    # ports:
+    #   - "8080:8080"                 # host:container — see rule 4
+    healthcheck:
+      test: ["CMD", "true"]           # ← replace with a real probe
+      interval: 5s
+      timeout: 3s
+      retries: 5
