@@ -2,7 +2,8 @@
 
 Go queue consumer: drains `queue.db` into per-`(site_id, page_url)`
 aggregates in `agg.db` — minute buckets with mergeable LCP histograms,
-plus a running row per page. Effectively-once (batch marker + startup
+a running row per page, and site-level minute buckets (`site_minute`,
+the dashboard trend's source — #15). Effectively-once (batch marker + startup
 recovery), crash-only error policy. Design:
 [docs/superpowers/specs/2026-07-18-worker-design.md](../../docs/superpowers/specs/2026-07-18-worker-design.md).
 

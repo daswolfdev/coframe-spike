@@ -25,9 +25,9 @@ depth climbing) go straight to the [runbook](runbook.md).
   experiments (a queue-depth ops strip lands with #20). `?fixture=1` renders
   canned data; `python3 tools/loadgen.py` generates real traffic.
 - **API:** <http://localhost:8000> — `POST /events` (SDK ingest),
-  `GET /config/{site_id}` (SDK config), `/healthz`, and `/stats` (queue depth
-  + data freshness — today's ops signal). Read endpoints for the dashboard
-  are next (#15) — the aggregates they'll read are live in `agg.db`.
+  `GET /config/{site_id}` (SDK config), the dashboard read surface
+  (`/sites`, `/sites/{id}/pages`, `/sites/{id}/trend`), `/healthz`, and
+  `/stats` (queue depth + data freshness — today's ops signal).
 - **Worker:** <http://localhost:8082> — ops only: `/healthz` (loop ticking),
   `/stats` (events consumed, queue depth, flush timings).
 - Each service owns its host port in its own `services/<name>/compose.yaml`.

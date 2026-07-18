@@ -1,4 +1,3 @@
-import sqlite3
 from dataclasses import dataclass
 
 from api.ctx import Ctx
@@ -25,14 +24,7 @@ def get_stats(ctx: Ctx) -> Stats:
 
 
 def _last_aggregate_ms(ctx: Ctx) -> int | None:
-    agg = ctx.db.agg_ro()
-    if agg is None:
+    rows = ctx.db.agg_rows("SELECT max(last_seen) FROM page_current")
+    if not rows or rows[0][0] is None:
         return None
-    try:
-        row = agg.execute("SELECT max(last_seen) FROM page_current").fetchone()
-    except sqlite3.OperationalError:
-        # agg.db exists but the worker hasn't created its schema yet.
-        return None
-    finally:
-        agg.close()
-    return None if row[0] is None else int(row[0]) * 1000
+    return int(rows[0][0]) * 1000

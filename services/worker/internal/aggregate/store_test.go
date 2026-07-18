@@ -132,6 +132,59 @@ func TestCurrentP75UsesTrailingWindowOnly(t *testing.T) {
 	}
 }
 
+// Failure mode this guards: the site trend must be a true percentile over
+// ALL the site's pages — merged histograms, not per-page p75s averaged.
+func TestApplySiteMinuteMergesAcrossPages(t *testing.T) {
+	s := openTest(t)
+	now := time.Unix(1_000_000_000, 0)
+
+	err := s.Apply(1, append(samples(4, "site-1", "/a", 2500),
+		samples(2, "site-1", "/b", 100)...), now)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var count, p75 int64
+	err = s.db.QueryRow(
+		`SELECT count, p75_ms FROM site_minute WHERE site_id=? AND minute=?`,
+		"site-1", now.Unix()/60).Scan(&count, &p75)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 6 {
+		t.Fatalf("site bucket count = %d, want 6", count)
+	}
+	// 75th of {100,100,2500,2500,2500,2500} sits in the 2500 bin.
+	if p75 < 2500 || p75 > 2650 {
+		t.Fatalf("site bucket p75 = %d, want ≈2500", p75)
+	}
+}
+
+// Same page across two batches in one minute: guards the double-count
+// where the site fold reuses page hists already merged with their bucket.
+func TestApplySiteMinuteAccumulatesSameMinute(t *testing.T) {
+	s := openTest(t)
+	now := time.Unix(1_000_000_000, 0)
+
+	if err := s.Apply(1, samples(3, "site-1", "/a", 1000), now); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Apply(2, samples(2, "site-1", "/a", 1000), now.Add(5*time.Second)); err != nil {
+		t.Fatal(err)
+	}
+
+	var count int64
+	err := s.db.QueryRow(
+		`SELECT count FROM site_minute WHERE site_id=? AND minute=?`,
+		"site-1", now.Unix()/60).Scan(&count)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 5 {
+		t.Fatalf("site bucket count = %d, want 5", count)
+	}
+}
+
 func TestAppliedBatchesPruned(t *testing.T) {
 	s := openTest(t)
 	now := time.Unix(1_000_000_000, 0)

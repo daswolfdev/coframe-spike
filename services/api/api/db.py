@@ -75,6 +75,26 @@ class Db:
         except sqlite3.OperationalError:
             return None
 
+    def agg_rows(
+        self, sql: str, params: tuple[str | int, ...] = ()
+    ) -> list[sqlite3.Row] | None:
+        """One read against the worker-owned agg.db, or None if it can't serve.
+
+        None covers the real mid-rollout states — file not created, schema
+        not created, table not yet added by an older worker (OperationalError
+        is that whole family) — so callers degrade to "no data yet", not 500.
+        """
+        agg = self.agg_ro()
+        if agg is None:
+            return None
+        try:
+            agg.row_factory = sqlite3.Row
+            return agg.execute(sql, params).fetchall()
+        except sqlite3.OperationalError:
+            return None
+        finally:
+            agg.close()
+
     @contextmanager
     def transaction(self, conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
         """Run a multi-statement write atomically — the only legal way to BEGIN.
