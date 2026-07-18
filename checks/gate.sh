@@ -14,7 +14,8 @@ fail() {
   FAILURES=$((FAILURES + 1))
 }
 
-tracked_md() { git ls-files '*.md'; }
+# Tracked plus untracked-but-not-ignored, so new docs are checked before `git add`.
+tracked_md() { git ls-files --cached --others --exclude-standard '*.md'; }
 
 # Every doc links back to the canon entrypoint.
 rule_doc_backlink() {
