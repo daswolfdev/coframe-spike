@@ -27,8 +27,10 @@ named for the api PR).
 1. **Worker first, owns queue schema** — plus `eventgen` for end-to-end
    verification.
 2. **Both aggregate tables** — per-minute buckets (system of record for
-   aggregates) plus a `page_current` running row (derived convenience for
-   fast dashboard reads).
+   aggregates) plus a `page_current` running row. The running row is
+   OBJECTIVE.md's literal "rolling aggregates per (site_id, page_url)"
+   shape, derived from the buckets — not a read-speed cache; reads were
+   already measured at ~30× headroom without it.
 3. **Log-binned histograms** — mergeable, no raw-sample retention, no deps.
 4. **Effectively-once via batch marker** — no loss, no double-count, at the
    price of explicit recovery logic and a crash-point test per row of the
@@ -129,6 +131,12 @@ Crash-point analysis (each row gets a regression test):
 `Recover()` is those two lookups — a startup function, not a concurrent
 reaper. Empty ticks skip all three transactions.
 
+**Error policy is crash-only:** any failed transaction or unexpected state
+(e.g. `busy_timeout` exhaustion mid-Apply) logs and exits nonzero; compose
+restarts the worker, and recovery is the single, tested startup path — the
+batch marker makes a replayed batch idempotent. No in-process retry logic
+exists to get wrong.
+
 ## Observability
 
 - `log/slog` JSON to stdout: startup config line, per-flush line at debug,
@@ -182,9 +190,14 @@ reaper. Empty ticks skip all three transactions.
   Pruning deferred — trigger: agg.db size or dashboard query p95 degrading.
   Note pruning would break rebuilding `page_current`'s all-time count from
   buckets; that trade-off gets decided when pruning does.
+- **Exactly one worker instance is assumed:** monotonic batch ids and claim
+  ownership collide if two workers run (cross-deleted claims). Enforced by
+  compose's default of one container per service — no `replicas` anywhere;
+  scaling the worker means sharding claims, a post-ceiling problem.
 - **Queue schema is now a two-service contract** defined by the consumer.
   If the API PR needs a field the worker didn't anticipate, it's additive
-  (add, don't repurpose).
+  (add, don't repurpose). When the API lands, consider pointing both
+  services at one shared `.sql` file so the DDL has a single home.
 
 ---
 
