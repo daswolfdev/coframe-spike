@@ -1,6 +1,7 @@
 # Layered uv sync: the dependency layer is cached until the lock changes,
 # so code edits rebuild in seconds.
-FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+# Minor-pinned: mutable tags make next month's rebuild a different image.
+FROM ghcr.io/astral-sh/uv:0.9-python3.14-bookworm-slim
 
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy

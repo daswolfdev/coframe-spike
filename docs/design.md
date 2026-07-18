@@ -115,13 +115,13 @@ never create the worker's file on the shared volume.
 
 **Deliberately not built (and triggers):** dashboard read endpoints
 (trigger: worker PR defines `agg.db` — #15); auth/rate-limiting on
-`POST /events` (trigger: leaving the laptop/LAN posture, #32); event
-batching in the SDK wire format (trigger: measured ingest pressure, not
-before).
+`POST /events` (trigger: leaving the loopback-only laptop posture, #32);
+event batching in the SDK wire format (trigger: measured ingest pressure,
+not before).
 
 ## dashboard
 
-**Shape:** nginx:alpine serving one static page (plain HTML + one ES module +
+**Shape:** nginx (1.31-alpine, minor-pinned) serving one static page (plain HTML + one ES module +
 inline SVG, no build step) on host port 8081, proxying `/api/` to the api
 same-origin. In: the read contract proposed in #15 (`/sites`,
 `/sites/{id}/pages`, `/sites/{id}/trend`, `/config/{id}`). Out: pixels.

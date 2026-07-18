@@ -4,10 +4,16 @@ services:
   api:
     build:
       context: ./services/api
+    init: true
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000" # loopback only — the laptop's LAN has no business here (#32)
     volumes:
       - data:/data # platform-owned shared volume (platform/compose.base.yaml)
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test:
         - CMD
@@ -17,3 +23,5 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
+      start_interval: 1s

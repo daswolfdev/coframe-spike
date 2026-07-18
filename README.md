@@ -13,8 +13,9 @@ make ps      # see it
 make down    # gone
 ```
 
-Dashboard at <http://localhost:8081>, API at <http://localhost:8000>. Full
-day-to-day usage: [docs/user-guide.md](docs/user-guide.md).
+Dashboard at <http://localhost:8081>, API at <http://localhost:8000> (both
+loopback-only). Needs Docker Engine 25+ / Compose 2.20+ — 2023-era or newer.
+Full day-to-day usage: [docs/user-guide.md](docs/user-guide.md).
 
 ## The 5-minute demo
 
