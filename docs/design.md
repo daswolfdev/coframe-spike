@@ -11,13 +11,15 @@ argument. Still to land with its service:
 ## Platform
 
 **Shape:** a root Makefile fronting Docker Compose. Seven team verbs
-(`up/down/ps/logs/errors/deploy/new`) plus maintainer `smoke`; `new` scaffolds a
-service from the template, and `smoke` deploys through that same scaffold,
+(`up/down/ps/logs/errors/deploy/new`) plus maintainer verbs `smoke` and
+`check`/`hooks` (the convention gate and its git-hook wiring); `new` scaffolds
+a service from the template, and `smoke` deploys through that same scaffold,
 so the pathway is re-proven on every smoke run. The Makefile discovers
 `services/*/compose.yaml` fragments (underscore-prefixed excluded) and merges
 them with `platform/compose.base.yaml` into one compose project (`perfmon`).
-State lives nowhere yet — no services run; shared infra (queue, db) arrives
-with the first service that needs it.
+Platform-owned state is a single shared `data` volume in `compose.base.yaml`,
+added when the api needed it (the [Queue section](#queue-a-sqlite-table));
+everything else lives with the service that owns it.
 
 **Why compose + make:** the whole platform is a file the team already knows
 how to read, runs identically on any laptop, and needs no controller to
@@ -37,9 +39,9 @@ registry — same directory layout, so switching is cheap.
 
 **Deliberately not built (and triggers to build):** reverse proxy / service
 mesh (trigger: real port-collision pain or TLS needs); CI (trigger: second
-contributor breaking main); observability stack (trigger: first service PR —
-logs/metrics land with something to observe); queue/db in compose.base.yaml
-(trigger: the api service PR chooses one and justifies it here).
+contributor breaking main — `make check` is the entrypoint a CI job will
+call); observability stack (Prometheus/Grafana — `make logs`/`errors` and
+`GET /stats` are the current surface; trigger: a question they can't answer).
 
 ## Queue: a SQLite table
 
@@ -107,11 +109,13 @@ becomes real (customers self-serve experiments), this flips to the SQLite
 table sooner than any other choice here changes — the seam (`ctx.cfg.sites`
 read by one command) is one function wide on purpose.
 
-**Ops surface:** `GET /stats` serves `queue_depth` (count of queue rows —
-the worker-down metric) and `last_aggregate_ms` (max event time folded into
-the worker's `page_current`, seconds→ms at the read layer; null until the
-worker first writes). agg.db is opened read-only per call so the api can
-never create the worker's file on the shared volume.
+**Ops surface:** `GET /healthz` probes the queue schema, not just the
+connection (#31), and backs the compose healthcheck. `GET /stats` serves
+`queue_depth` (count of queue rows — the worker-down metric) and
+`last_aggregate_ms` (max event time folded into the worker's `page_current`,
+seconds→ms at the read layer; null until the worker first writes). agg.db is
+opened read-only per call so the api can never create the worker's file on
+the shared volume.
 
 **Deliberately not built (and triggers):** dashboard read endpoints
 (trigger: worker PR defines `agg.db` — #15); auth/rate-limiting on

@@ -12,6 +12,6 @@ labeled as such — they are evidence-based but not a stopwatch.
 
 | Date | Commit span (all branches) | Est. hours | What happened |
 |---|---|---|---|
-| 2026-07-18 | 11:24 – ongoing | ~2.0 (running) | Bootstrap to working platform: canon + philosophy docs, monorepo skeleton (Makefile interface, compose discovery, service template, smoke), convention gate (reachability), spec/plan/review workflow + /spec-review, WAL bench report, api + dashboard services specced/built/merged, demo script, deliverable tracking (#25) |
+| 2026-07-18 | 11:24 – ongoing | ~2.2 (running) | Bootstrap to working platform: canon + philosophy docs, monorepo skeleton (Makefile interface, compose discovery, service template, smoke), convention gate (reachability), spec/plan/review workflow + /spec-review, WAL bench report, api + dashboard services specced/built/merged, demo script, deliverable tracking (#25); then queue claim_id contract (#11), /stats ops surface (#19) + loadgen (#18), make new scaffold, docs staleness sweep |
 
-**Total to date: ~2.0 h (estimate, running)**
+**Total to date: ~2.2 h (estimate, running)**

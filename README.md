@@ -1,8 +1,9 @@
 # perfmon — platform take-home
 
-A web-performance-monitoring stack (event ingest API, aggregating worker,
-dashboard) and the **minimum platform** that runs it: one command up, one
-command to deploy a single service, observable, laptop-only. Built against
+A web-performance-monitoring stack (event ingest API, dashboard, and an
+aggregating worker still to land — #11) and the **minimum platform** that
+runs it: one command up, one command to deploy a single service, observable,
+laptop-only. Built against
 [OBJECTIVE.md](OBJECTIVE.md) — the source of truth for scope and grading.
 
 ## Quickstart

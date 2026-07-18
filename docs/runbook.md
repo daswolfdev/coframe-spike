@@ -3,10 +3,16 @@
 The failure this platform is designed to survive, and the one demonstrated in
 the [recording](demo.md). One page; follow top to bottom.
 
+*Status:* the worker itself lands with #11 — until then this scenario can't
+be induced end-to-end (nothing consumes the queue, so depth only grows).
+Queue depth and freshness are already live via `curl localhost:8000/stats`;
+the dashboard ops strip rendering them is #20.
+
 ## Symptoms
 
 - Dashboard aggregates stop updating — last-updated timestamp ages visibly;
-  ops strip shows **queue depth climbing** instead of hovering near zero.
+  **queue depth climbs** (`curl localhost:8000/stats`, or the ops strip once
+  #20 lands) instead of hovering near zero.
 - Event ingestion is **unaffected**: `POST /events` keeps returning 202/200.
   If ingestion is *also* failing, this is not your incident — check the api.
 
@@ -18,7 +24,7 @@ make logs S=worker     # last lines before death: panic? OOM? clean exit?
 ```
 
 Two signals confirm it: worker not running/healthy in `make ps`, and queue
-depth rising on the ops strip. Depth alone can also mean the worker is alive
+depth rising in `/stats`. Depth alone can also mean the worker is alive
 but drowning — `make ps` disambiguates.
 
 ## Recover
@@ -30,7 +36,7 @@ make deploy S=worker   # rebuild + restart just the worker
 Then watch the drain:
 
 - `make ps` — worker healthy again.
-- Ops strip — queue depth falls (drain rate is ~33× ingest at target load,
+- `/stats` — `queue_depth` falls (drain rate is ~33× ingest at target load,
   so minutes of backlog clear in seconds).
 - Dashboard last-updated goes fresh.
 
