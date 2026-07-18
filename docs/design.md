@@ -117,9 +117,17 @@ seconds→ms at the read layer; null until the worker first writes). agg.db is
 opened read-only per call so the api can never create the worker's file on
 the shared volume.
 
-**Deliberately not built (and triggers):** dashboard read endpoints
-(trigger fired — the worker landed `agg.db`; #15 is the next build);
-auth/rate-limiting on
+**Read surface (#15):** `GET /sites` (configured ∪ observed sites, sorted),
+`GET /sites/{id}/pages` (top 20 rows of the worker's `page_current` by
+count), `GET /sites/{id}/trend` (per-minute site-wide p75 over the trailing
+hour). Per-page p75s can't be combined, so trend merges `page_minute`'s
+histogram blobs and reports the merged p75 — the api ports the read side of
+the worker's 128-bin encoding (`api/hist.py`), which widens the #11
+schema-as-contract to include the blob format. Missing agg.db, missing
+schema, and unknown site all answer `[]`: one "no data yet" render on the
+dashboard, and the api never 500s on the worker's mid-rollout states.
+
+**Deliberately not built (and triggers):** auth/rate-limiting on
 `POST /events` (trigger: leaving the loopback-only laptop posture, #32);
 event batching in the SDK wire format (trigger: measured ingest pressure,
 not before).
@@ -135,8 +143,8 @@ back up and nothing for the runbook. (The nginx `/api/` location is a
 same-origin proxy for the dashboard's own calls, not the platform-wide
 reverse proxy deliberately not built above — services still own their ports.)
 
-**Contract posture:** built ahead of its data sources; #15 is the contract's
-authoritative home while the api's read endpoints are under negotiation.
+**Contract posture:** built ahead of its data sources; the contract
+negotiated on #15 is now served by the api (see § api, read surface).
 404/502 and empty data collapse into one "no data yet" render, so the
 dashboard ships before the api's read endpoints and the worker's aggregates
 exist, and degrades identically when they fail later. `?fixture=1` renders
