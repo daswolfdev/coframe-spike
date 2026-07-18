@@ -8,7 +8,8 @@ whole interface — nobody types `docker compose`.
 ```sh
 make up              # everything: built, started, healthy — one command
 make ps              # what's running, health, ports
-make logs            # follow all logs (or one: make logs S=api)
+make logs            # last 100 + live tail (or one: make logs S=api)
+make errors          # same, but only error/exception lines
 make deploy S=api    # ship a change to ONE service: rebuild + restart it
 make down            # tear it all down
 ```
