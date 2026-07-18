@@ -39,6 +39,9 @@ lens) with a required verdict format. Use it before approving any spec.
 
 House rules that follow from them:
 
+- Everything must run locally on both macOS and Linux. In practice: POSIX sh
+  only (no GNU-isms — BSD sed has no GNU `-i`, stock macOS has no
+  `timeout(1)`), and Makefiles must work under Apple's make 3.81.
 - Working code is necessary, not sufficient — leave the design better than you
   found it.
 - Extract functions for a name and a boundary, not a line count. Depth wins ties.
