@@ -36,7 +36,3 @@ mesh (trigger: real port-collision pain or TLS needs); CI (trigger: second
 contributor breaking main); observability stack (trigger: first service PR —
 logs/metrics land with something to observe); queue/db in compose.base.yaml
 (trigger: the api service PR chooses one and justifies it here).
-
----
-
-*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*

@@ -28,7 +28,3 @@ Total: ~14 minutes. Platform files touched: **none**.
 
 Maintainers: `make smoke` mechanically re-proves this pathway (copies the
 template, deploys it, waits for healthy, tears down).
-
----
-
-*Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*
