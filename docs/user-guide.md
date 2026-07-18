@@ -10,6 +10,7 @@ make up              # everything: built, started, healthy — one command
 make ps              # what's running, health, ports
 make logs            # last 100 + live tail (or one: make logs S=api)
 make errors          # like logs, error/exception lines only
+make stats           # live queue depth + freshness, 1s poll (S=worker for its stats)
 make deploy S=api    # ship a change to ONE service: rebuild + restart it
 make down            # tear it all down
 ```
@@ -23,7 +24,7 @@ depth climbing) go straight to the [runbook](runbook.md).
 
 - **Dashboard:** <http://localhost:8081> — top pages, p75 LCP trend, active
   experiments (platform health deliberately stays in the terminal:
-  `curl localhost:8000/stats`). `?fixture=1` renders
+  `make stats`). `?fixture=1` renders
   canned data; `python3 tools/loadgen.py` generates real traffic.
 - **API:** <http://localhost:8000> — `POST /events` (SDK ingest),
   `GET /config/{site_id}` (SDK config), the dashboard read surface

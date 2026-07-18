@@ -35,7 +35,7 @@ def cfg_create() -> Cfg:
         data_dir=Path("/data"),
         sites={
             "demo": SiteConfig(
-                sampling_rate=1.0,
+                sampling_rate=0.5,
                 experiments=(
                     Experiment(
                         id="checkout-cta-color",

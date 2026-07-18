@@ -11,9 +11,8 @@ who doesn't live in a terminal).
 ## Symptoms
 
 - Dashboard aggregates stop updating — last-updated timestamp ages visibly;
-  **queue depth climbs** (`curl localhost:8000/stats`; poll it live with
-  `while :; do curl -s localhost:8000/stats; echo; sleep 1; done`) instead
-  of hovering near zero. The worker's *own* crashes never get this far: it
+  **queue depth climbs** (`make stats` polls it live once a second;
+  one-shot: `curl localhost:8000/stats`) instead of hovering near zero. The worker's *own* crashes never get this far: it
   exits nonzero and the restart policy brings it back in seconds (the
   crash-only design), the blip draining itself. *Sustained* growth means a
   worker that is crash-looping, wedged, or killed/stopped from outside —
