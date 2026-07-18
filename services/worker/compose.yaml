@@ -2,6 +2,7 @@ services:
   worker:
     build:
       context: ./services/worker
+    init: true
     # Crash-only error policy (see spec): the worker exits nonzero on any
     # tick error and relies on this restart to reach the recovery path.
     restart: unless-stopped
@@ -14,8 +15,15 @@ services:
       - "127.0.0.1:8082:8082" # loopback only — the laptop's LAN has no business here (#32)
     volumes:
       - data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "/worker", "-check"]
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
+      start_interval: 1s
