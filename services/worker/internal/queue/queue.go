@@ -53,8 +53,8 @@ func Open(path string) (*Queue, error) {
 
 func (q *Queue) Close() error { return q.db.Close() }
 
-// Enqueue is the producer path — used by eventgen and tests standing in
-// for the api. claim_id is deliberately omitted, as the api's INSERT is.
+// Enqueue is the producer path — used by tests standing in for the api.
+// claim_id is deliberately omitted, as the api's INSERT is.
 func (q *Queue) Enqueue(e Event) error {
 	_, err := q.db.Exec(
 		`INSERT INTO queue (site_id, page_url, lcp_ms, ts_ms, session_id, received_at_ms)
