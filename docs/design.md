@@ -48,13 +48,15 @@ back up and nothing for the runbook. (The nginx `/api/` location is a
 same-origin proxy for the dashboard's own calls, not the platform-wide
 reverse proxy deliberately not built above — services still own their ports.)
 
-**Contract posture:** built ahead of its data sources. 404/502 and empty
-data collapse into one "no data yet" render, so the dashboard ships before
-the api's read endpoints and the worker's aggregates exist, and degrades
-identically when they fail later. `?fixture=1` renders the committed
-executable example of the contract (must move in the same commit as any
-contract change). When the api is unreachable, last-loaded data stays on
-screen under a banner that says it may be stale.
+**Contract posture:** built ahead of its data sources; #15 is the contract's
+authoritative home while the api's read endpoints are under negotiation.
+404/502 and empty data collapse into one "no data yet" render, so the
+dashboard ships before the api's read endpoints and the worker's aggregates
+exist, and degrades identically when they fail later. `?fixture=1` renders
+the committed executable example of the contract (sync discipline lives in
+[the service README](../services/dashboard/README.md)). When the api is
+unreachable, last-loaded data stays on screen under a banner that says it
+may be stale.
 
 **Rejected alternatives:** a framework + bundler (React/Vite) — toolchain
 and build artifacts to operate for one page of tables and a sparkline; CORS
