@@ -2,10 +2,9 @@
 # self-register by existing as services/<name>/compose.yaml.
 name: perfmon
 
-# Shared data volume: the SQLite files live here (queue.db today; agg.db
-# when the worker lands). One volume on one host is the design — WAL's
-# shared-memory index requires all writers on one machine; the day we need
-# a second host, the stores move to Postgres (see docs/reports/
-# 2026-07-18-sqlite-wal-throughput.md).
+# Shared data volume: the SQLite files live here (queue.db and agg.db).
+# One volume on one host is the design — WAL's shared-memory index requires
+# all writers on one machine; the day we need a second host, the stores
+# move to Postgres (see docs/reports/2026-07-18-sqlite-wal-throughput.md).
 volumes:
   data:

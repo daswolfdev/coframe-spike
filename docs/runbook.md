@@ -13,25 +13,36 @@ who doesn't live in a terminal).
 - Dashboard aggregates stop updating — last-updated timestamp ages visibly;
   **queue depth climbs** (`curl localhost:8000/stats`; poll it live with
   `while :; do curl -s localhost:8000/stats; echo; sleep 1; done`) instead
-  of hovering near zero.
+  of hovering near zero. The worker's *own* crashes never get this far: it
+  exits nonzero and the restart policy brings it back in seconds (the
+  crash-only design), the blip draining itself. *Sustained* growth means a
+  worker that is crash-looping, wedged, or killed/stopped from outside —
+  Docker treats an operator kill as a manual stop and does not restart it
+  (measured on #56).
 - Event ingestion is **unaffected**: `POST /events` keeps returning 202/200.
   If ingestion is *also* failing, this is not your incident — check the api.
 
 ## Confirm (60 seconds)
 
 ```sh
-make ps                # worker: Exited / unhealthy; api + dashboard healthy
+make ps                # worker state — reads as one of three, see below
 make logs S=worker     # last lines before death: panic? OOM? clean exit?
 ```
 
-Two signals confirm it: worker not running/healthy in `make ps`, and queue
-depth rising in `/stats`. Depth alone can also mean the worker is alive
-but drowning — `make ps` disambiguates, and the worker's own surface
-settles it: `curl localhost:8082/stats` (events consumed, flush p50/p95)
-answers "drowning or dead", `curl localhost:8082/healthz` returns 503 when
-the loop is stalled but the process lives.
+Two signals confirm it: queue depth rising in `/stats`, and the worker's
+state in `make ps` — which also names the failure. `Restarting` is a
+crash-loop (restart policy firing over and over); `Up (unhealthy)` is a
+wedged loop the restart policy cannot see (it reacts to exits, not
+healthchecks); `Exited` means it was killed or stopped from outside
+(Docker treats both as manual stops — no auto-restart). The worker's own
+surface settles "drowning or dead": `curl localhost:8082/stats` (events
+consumed, flush p50/p95), and `curl localhost:8082/healthz` returns 503
+when the loop is stalled but the process lives.
 
 ## Recover
+
+The worker's own crashes need no operator — the restart policy already
+brought it back and the queue drained. For the three durable states above:
 
 ```sh
 make deploy S=worker   # rebuild + restart just the worker
