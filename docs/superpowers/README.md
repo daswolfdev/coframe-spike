@@ -12,6 +12,7 @@ disagree, design.md wins.
 
 ## Specs
 
+- [2026-07-18 — Dashboard ops strip](specs/2026-07-18-ops-strip-design.md)
 - [2026-07-18 — Dashboard service](specs/2026-07-18-dashboard-design.md)
 - [2026-07-18 — Monorepo layout](specs/2026-07-18-monorepo-layout-design.md)
 
