@@ -2,8 +2,12 @@
 
 SQLite runs real (fresh files per test in an isolated tmp dir); every
 non-SQLite dependency is narrowed to a Fake* with test helpers.
+
+Test modules use the `tctx` fixture — never import test_ctx_create into a
+test_*.py file: pytest would collect the imported function as a phantom test.
 """
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -46,13 +50,17 @@ class TestCtx(Ctx):
 
 
 def test_ctx_create(tmp_path: Path, cfg: Cfg | None = None) -> TestCtx:
-    """Production cfg with the data dir swapped to an isolated tmp dir."""
-    if cfg is None:
-        cfg = replace(cfg_create(), data_dir=tmp_path / "data")
+    """Build a TestCtx; pass cfg to override fields.
+
+    data_dir is always re-rooted under this test's tmp dir regardless of the
+    cfg given — isolation is not optional.
+    """
+    base = cfg if cfg is not None else cfg_create()
+    isolated = replace(base, data_dir=tmp_path / "data")
     return TestCtx(
-        db=db_create(cfg.data_dir),
+        db=db_create(isolated.data_dir),
         repos=Repos(),
-        cfg=cfg,
+        cfg=isolated,
         secrets=Secrets(),
         logger=logger_create(),
         clock=FakeClock(),
@@ -60,5 +68,8 @@ def test_ctx_create(tmp_path: Path, cfg: Cfg | None = None) -> TestCtx:
 
 
 @pytest.fixture
-def tctx(tmp_path: Path) -> TestCtx:
-    return test_ctx_create(tmp_path)
+def tctx(tmp_path: Path) -> Iterator[TestCtx]:
+    ctx = test_ctx_create(tmp_path)
+    yield ctx
+    ctx.db.queue.close()
+    ctx.db.config.close()

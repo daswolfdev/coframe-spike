@@ -50,7 +50,7 @@ convention = "pep257"
     "INP001",  # tests are found via rootdir, not imported as a package
 ]
 "tests/conftest.py" = [
-    "PT028", # test_ctx_create is the canon helper name, not a test (__test__ = False)
+    "PT028", # test_ctx_create is the canon helper name, not a test — conftest is never collected
 ]
 
 # Strict, no exceptions (canon): warnings are failures; needing an ignore

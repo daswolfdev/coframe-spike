@@ -149,7 +149,9 @@ def build() -> FastAPI:          # uvicorn api.app:build --factory
 - **`db.py`** — owns SQLite: opens and configures the connections (WAL,
   pragmas, busy timeout) and defines the `Db` dataclass that `ctx.db`
   carries — the surface commands run their data ops on. Schema/DDL lives
-  here too, so "what tables exist" has one home.
+  here too, so "what tables exist" has one home. Multi-statement writes go
+  through `Db.transaction()` (lock-guarded `BEGIN IMMEDIATE` — connections
+  are shared across the threadpool; never issue `BEGIN` yourself).
 - **`env.py`** — the only module that reads `os.environ`, and only secrets
   come through it. Parses raw strings into typed values; everything
   downstream takes typed arguments.

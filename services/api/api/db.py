@@ -7,7 +7,10 @@ at the repo root).
 """
 
 import sqlite3
-from dataclasses import dataclass
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -15,6 +18,27 @@ from pathlib import Path
 class Db:
     queue: sqlite3.Connection
     config: sqlite3.Connection
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    @contextmanager
+    def transaction(self, conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
+        """Run a multi-statement write atomically — the only legal way to BEGIN.
+
+        Connections are shared across FastAPI's threadpool; a bare BEGIN from
+        two threads would interleave into one transaction. The lock is what
+        makes BEGIN IMMEDIATE safe here — never issue BEGIN outside this
+        method. Serializing writers costs nothing at our load (~10µs/insert,
+        ~126x headroom — see the WAL report).
+        """
+        with self._lock:
+            conn.execute("BEGIN IMMEDIATE")
+            try:
+                yield conn
+            except BaseException:
+                conn.execute("ROLLBACK")
+                raise
+            else:
+                conn.execute("COMMIT")
 
 
 def db_create(data_dir: Path) -> Db:
@@ -27,9 +51,9 @@ def db_create(data_dir: Path) -> Db:
 
 def _open(path: Path) -> sqlite3.Connection:
     # check_same_thread=False: FastAPI runs sync handlers on a threadpool;
-    # SQLite is compiled serialized, so cross-thread use of one connection
-    # is safe. autocommit=True matches the benchmarked per-request enqueue;
-    # multi-statement transactions issue explicit BEGIN IMMEDIATE.
+    # SQLite is compiled serialized, so single autocommit statements are safe
+    # on a shared connection. Multi-statement writes must go through
+    # Db.transaction() — see its docstring for why.
     conn = sqlite3.connect(path, check_same_thread=False, autocommit=True)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
