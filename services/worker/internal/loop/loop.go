@@ -6,6 +6,7 @@ package loop
 
 import (
 	"context"
+	"math"
 	"time"
 
 	"perfmon/worker/internal/aggregate"
@@ -72,11 +73,7 @@ func (l *Loop) Tick(now time.Time) (int, error) {
 		l.stats.SawTick(now)
 		return 0, nil
 	}
-	samples := make([]aggregate.Sample, len(events))
-	for i, e := range events {
-		samples[i] = aggregate.Sample{SiteID: e.SiteID, PageURL: e.PageURL, LCPms: e.LCPms}
-	}
-	if err := l.agg.Apply(l.next, samples, now); err != nil {
+	if err := l.agg.Apply(l.next, toSamples(events), now); err != nil {
 		return 0, err
 	}
 	if err := l.q.Ack(l.next); err != nil {
@@ -86,6 +83,20 @@ func (l *Loop) Tick(now time.Time) (int, error) {
 	l.stats.SawFlush(now, len(events), time.Since(start))
 	l.stats.SawTick(now)
 	return len(events), nil
+}
+
+// toSamples is the queue→aggregate boundary: the contract's REAL lcp_ms
+// rounds to whole milliseconds, all the histogram's ≈5% bins can see.
+func toSamples(events []queue.Event) []aggregate.Sample {
+	samples := make([]aggregate.Sample, len(events))
+	for i, e := range events {
+		samples[i] = aggregate.Sample{
+			SiteID:  e.SiteID,
+			PageURL: e.PageURL,
+			LCPms:   int64(math.Round(e.LCPms)),
+		}
+	}
+	return samples
 }
 
 // Run polls until ctx ends. The first tick error returns immediately

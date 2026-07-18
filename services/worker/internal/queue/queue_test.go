@@ -19,8 +19,8 @@ func enqueueN(t *testing.T, q *Queue, n int) {
 	t.Helper()
 	for i := range n {
 		err := q.Enqueue(Event{
-			SiteID: "site-1", PageURL: "/p", LCPms: int64(1000 + i),
-			SessionID: "s1", TS: 1700000000000,
+			SiteID: "site-1", PageURL: "/p", LCPms: float64(1000 + i),
+			TSms: 1700000000000, SessionID: "s1", ReceivedAtMs: 1700000000000,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -40,7 +40,7 @@ func TestClaimAckLifecycle(t *testing.T) {
 		t.Fatalf("claimed %d, want 3", len(got))
 	}
 	if got[0].LCPms != 1000 {
-		t.Fatalf("first claimed LCPms = %d, want 1000 (oldest first)", got[0].LCPms)
+		t.Fatalf("first claimed LCPms = %v, want 1000 (oldest first)", got[0].LCPms)
 	}
 
 	depth, err := q.Depth()

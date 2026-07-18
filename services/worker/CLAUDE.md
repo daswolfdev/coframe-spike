@@ -12,11 +12,13 @@ this directory and wins on Go-specific questions.
 
 ## What this service is
 
-Consumes `queue.db` (batch claims via `BEGIN IMMEDIATE`), folds rolling
+Consumes the producer-owned `queue` table in `queue.db` (schema authority:
+`services/api/api/db.py`, negotiated on #11; batch claims via
+`BEGIN IMMEDIATE` on the consumer-owned `claim_id` column), folds rolling
 aggregates per `(site_id, page_url)` — event count, p75 LCP, last-seen — into
-`agg.db`, of which this worker is the **only writer**. The dashboard reads
-aggregates through the api service, never from here. Decisions already made
-(SQLite-as-queue, one-writer-per-file) live in issue #11 and
-[docs/reports/2026-07-18-sqlite-wal-throughput.md](../../docs/reports/2026-07-18-sqlite-wal-throughput.md);
-decisions still open (claim/ack semantics, exact vs approximate p75) get made
-and recorded in [docs/design.md](../../docs/design.md) when the code lands.
+`agg.db`, of which this worker is the **only writer**. Effectively-once via
+the agg-side batch marker; crash-only error policy. The dashboard reads
+aggregates through the api service, never from here. Rationale lives in
+issue #11,
+[docs/reports/2026-07-18-sqlite-wal-throughput.md](../../docs/reports/2026-07-18-sqlite-wal-throughput.md),
+and [docs/design.md](../../docs/design.md) § worker.

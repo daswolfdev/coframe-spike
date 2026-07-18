@@ -50,8 +50,8 @@ func (f *fixture) enqueue(t *testing.T, n int) {
 	t.Helper()
 	for i := range n {
 		err := f.q.Enqueue(queue.Event{
-			SiteID: "site-1", PageURL: "/p", LCPms: int64(1000 + i),
-			SessionID: "s1", TS: 1700000000000,
+			SiteID: "site-1", PageURL: "/p", LCPms: float64(1000 + i),
+			TSms: 1700000000000, SessionID: "s1", ReceivedAtMs: 1700000000000,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -140,11 +140,7 @@ func TestRecoverAfterApplyCrash(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	samples := make([]aggregate.Sample, len(events))
-	for i, e := range events {
-		samples[i] = aggregate.Sample{SiteID: e.SiteID, PageURL: e.PageURL, LCPms: e.LCPms}
-	}
-	if err := f.agg.Apply(1, samples, time.Now()); err != nil { // died here
+	if err := f.agg.Apply(1, toSamples(events), time.Now()); err != nil { // died here
 		t.Fatal(err)
 	}
 	f.reopen(t)

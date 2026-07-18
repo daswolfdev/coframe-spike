@@ -36,12 +36,14 @@ func main() {
 
 	n := 0
 	for deadline.IsZero() || time.Now().Before(deadline) {
+		now := time.Now().UnixMilli()
 		e := queue.Event{
-			SiteID:    fmt.Sprintf("site-%d", rand.IntN(*sites)+1),
-			PageURL:   fmt.Sprintf("/page-%d", rand.IntN(*pages)+1),
-			LCPms:     lcp(),
-			SessionID: fmt.Sprintf("s%04d", rand.IntN(1000)),
-			TS:        time.Now().UnixMilli(),
+			SiteID:       fmt.Sprintf("site-%d", rand.IntN(*sites)+1),
+			PageURL:      fmt.Sprintf("/page-%d", rand.IntN(*pages)+1),
+			LCPms:        lcp(),
+			TSms:         now,
+			SessionID:    fmt.Sprintf("s%04d", rand.IntN(1000)),
+			ReceivedAtMs: now,
 		}
 		if err := q.Enqueue(e); err != nil {
 			log.Fatal(err)
@@ -54,6 +56,6 @@ func main() {
 
 // lcp draws from a log-normal centered near 2.5s — the shape of real
 // LCP distributions.
-func lcp() int64 {
-	return int64(math.Exp(rand.NormFloat64()*0.5 + math.Log(2500)))
+func lcp() float64 {
+	return math.Exp(rand.NormFloat64()*0.5 + math.Log(2500))
 }
