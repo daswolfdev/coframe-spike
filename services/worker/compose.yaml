@@ -11,7 +11,7 @@ services:
       # 8082: dashboard already publishes 8081 (service owns its host port).
       LISTEN: ":8082"
     ports:
-      - "8082:8082"
+      - "127.0.0.1:8082:8082" # loopback only — the laptop's LAN has no business here (#32)
     volumes:
       - data:/data
     healthcheck:
