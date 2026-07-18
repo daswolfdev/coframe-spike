@@ -5,6 +5,7 @@
 #   make ps            what's running, health, published ports
 #   make logs [S=api]  follow logs (all services, or one)
 #   make deploy S=api  rebuild + restart ONE service
+#   make new S=alerts  scaffold an empty service from the template
 #   make smoke         (maintainer) prove the add-a-service pathway end-to-end
 #   make check         run the convention gate (same entrypoint CI will use)
 #   make hooks         route git hooks through .githooks (pre-commit runs the gate)
@@ -17,7 +18,7 @@ COMPOSE := docker compose --project-directory . \
   -f platform/compose.base.yaml \
   $(foreach f,$(COMPOSE_FRAGMENTS),-f $(f))
 
-.PHONY: up down ps logs deploy smoke check hooks
+.PHONY: up down ps logs deploy new smoke check hooks
 
 up:
 ifeq ($(COMPOSE_FRAGMENTS),)
@@ -43,6 +44,27 @@ ifndef S
 endif
 	$(COMPOSE) up -d --build $(S)
 	@$(COMPOSE) ps $(S)
+
+# Scaffold an empty service from services/_template: copy the Dockerfile,
+# rewrite the service name + build context in compose.yaml. The name guard
+# (lowercase DNS-safe, no leading _) also keeps sed's replacement literal
+# and the result discoverable. `make smoke` deploys through this same path.
+new:
+ifndef S
+	$(error usage: make new S=<service-name>)
+endif
+	@expr "x$(S)" : 'x[a-z][a-z0-9-]*$$' >/dev/null || \
+	  { echo "new: invalid name '$(S)' — lowercase letters, digits, hyphens; must start with a letter"; exit 1; }
+	@test ! -e services/$(S) || \
+	  { echo "new: services/$(S) already exists"; exit 1; }
+	mkdir -p services/$(S)
+	cp services/_template/Dockerfile services/$(S)/Dockerfile
+	sed 's/_template/$(S)/g' services/_template/compose.yaml > services/$(S)/compose.yaml
+	@echo "new: services/$(S) scaffolded. Next steps (docs/adding-a-service.md):"
+	@echo "  1. replace services/$(S)/Dockerfile with your build"
+	@echo "  2. make the healthcheck in services/$(S)/compose.yaml real"
+	@echo "  3. if it listens: uncomment ports, pick a free host port (make ps)"
+	@echo "  4. make deploy S=$(S)"
 
 check: ## Run the convention gate (same entrypoint CI will use)
 	./checks/gate.sh
