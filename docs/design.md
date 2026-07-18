@@ -4,9 +4,9 @@ Judged against [OBJECTIVE.md](../OBJECTIVE.md). Reviewed under
 [SPEC-REVIEW.md](SPEC-REVIEW.md). This document grows a section per service
 as each lands — each service's PR brings its own section. Landed so far:
 platform, the queue choice, [api](../services/api/README.md) (write/config
-surface), [dashboard](../services/dashboard/README.md), and the scaling
-argument. Still to land with its service:
-[worker](../services/worker/README.md).
+surface), [dashboard](../services/dashboard/README.md),
+[worker](../services/worker/README.md) (queue consumer / aggregator), and
+the scaling argument.
 
 ## Platform
 
@@ -151,6 +151,37 @@ middleware into the api (two services own one decision), plus preflight
 traffic. Load at ceiling: 1,000 users polling every 5s ≈ 600 req/s of
 static/proxy traffic — nginx territory; api-side reads have measured
 headroom (~9,300 QPS, [benchmark report](reports/2026-07-18-sqlite-wal-throughput.md)).
+
+## worker
+
+**Shape:** Go binary; consumes the producer-owned `queue` table (batch
+claim via `BEGIN IMMEDIATE`, 250ms poll, ≤2,000 rows), folds
+per-`(site_id, page_url)` minute buckets of log-binned LCP histograms
+plus a running row into `agg.db` (worker is its only writer).
+Effectively-once: consumer-owned `claim_id` marks in the queue plus a
+batch marker inside the agg transaction, startup recovery, crash-only
+error policy (negotiated on #11). State: `queue` rows are transient;
+`page_minute` is the system of record for aggregates; `page_current` is
+derived. Full spec:
+[superpowers/specs/2026-07-18-worker-design.md](superpowers/specs/2026-07-18-worker-design.md).
+
+**Why SQLite + single loop:** measured (see
+[reports/2026-07-18-sqlite-wal-throughput.md](reports/2026-07-18-sqlite-wal-throughput.md))
+at ~33× drain headroom over the 1,000 events/s ceiling. Rejected
+alternative: staged goroutine pipeline — concurrency without a load
+parameter demanding it. Driver `modernc.org/sqlite` (pure Go,
+CGO-free cross-compile); rejected: `mattn/go-sqlite3` (CGO speed the
+headroom makes irrelevant).
+
+**Least confident decision:** consumer-owned claim state (`claim_id`)
+living inside the producer's schema — one table carrying two services'
+writes is the coupling we watched most closely; the alternative
+(worker-owned claim ledger in agg.db) died on SQLite rowid reuse.
+
+**Deliberately not built (and triggers):** bucket pruning (trigger:
+agg.db size or dashboard p95 degrading); multi-worker claims (trigger:
+drain headroom exhausted — post-ceiling); exact percentiles (trigger:
+a product need finer than the histogram's ≈5% resolution).
 
 ## Scaling pathway (argued, per constraint #3)
 

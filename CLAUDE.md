@@ -23,6 +23,10 @@ still wins every conflict. Current sub-canons:
 - [services/api/CLAUDE.md](services/api/CLAUDE.md) — the Python API:
   toolchain (Python 3.14, uv, FastAPI/Pydantic, ruff, ty strict) and the
   Ctx-first architecture.
+- [services/worker/CLAUDE.md](services/worker/CLAUDE.md) — the Go worker
+  (symlinks: [AGENT.md](services/worker/AGENT.md) /
+  [AGENTS.md](services/worker/AGENTS.md)); Go practices in
+  [services/worker/docs/GO.md](services/worker/docs/GO.md).
 
 ## Coding philosophy
 

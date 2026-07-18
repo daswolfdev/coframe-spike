@@ -1,0 +1,21 @@
+services:
+  worker:
+    build:
+      context: ./services/worker
+    # Crash-only error policy (see spec): the worker exits nonzero on any
+    # tick error and relies on this restart to reach the recovery path.
+    restart: unless-stopped
+    environment:
+      QUEUE_DB: /data/queue.db
+      AGG_DB: /data/agg.db
+      # 8082: dashboard already publishes 8081 (service owns its host port).
+      LISTEN: ":8082"
+    ports:
+      - "8082:8082"
+    volumes:
+      - data:/data
+    healthcheck:
+      test: ["CMD", "/worker", "-check"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
