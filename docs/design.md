@@ -2,7 +2,9 @@
 
 Judged against [OBJECTIVE.md](../OBJECTIVE.md). Reviewed under
 [SPEC-REVIEW.md](SPEC-REVIEW.md). This document grows a section per service
-as each lands; today it covers the platform.
+as each lands; today it covers the platform. The three product services —
+[api](../services/api/README.md), [worker](../services/worker/README.md),
+[dashboard](../services/dashboard/README.md) — land in follow-up PRs.
 
 ## Platform
 
