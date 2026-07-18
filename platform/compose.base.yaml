@@ -1,4 +1,11 @@
 # Platform-owned compose config. Services NEVER need edits here — they
 # self-register by existing as services/<name>/compose.yaml.
-# Later platform PRs add shared infra (queue, db, observability) to this file.
 name: perfmon
+
+# Shared data volume: the SQLite files live here (queue.db today; agg.db
+# when the worker lands). One volume on one host is the design — WAL's
+# shared-memory index requires all writers on one machine; the day we need
+# a second host, the stores move to Postgres (see docs/reports/
+# 2026-07-18-sqlite-wal-throughput.md).
+volumes:
+  data:
