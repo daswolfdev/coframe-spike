@@ -3,11 +3,6 @@
 The failure this platform is designed to survive, and the one demonstrated in
 the [recording](demo.md). One page; follow top to bottom.
 
-*Status:* the worker itself lands with #11 — until then this scenario can't
-be induced end-to-end (nothing consumes the queue, so depth only grows).
-Queue depth and freshness are already live via `curl localhost:8000/stats`;
-the dashboard ops strip rendering them is #20.
-
 ## Symptoms
 
 - Dashboard aggregates stop updating — last-updated timestamp ages visibly;
