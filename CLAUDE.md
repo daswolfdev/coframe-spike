@@ -12,6 +12,22 @@ under-built are both wrong.** Before starting or scoping any work, check it
 against OBJECTIVE.md. When any other guidance in this repo conflicts with it,
 OBJECTIVE.md wins.
 
+## Sub-project canons
+
+A service directory may carry its own `CLAUDE.md` (with
+[AGENT.md](services/api/AGENT.md) / [AGENTS.md](services/api/AGENTS.md)
+symlinks, mirroring the root convention) refining these rules for work inside
+it; where it is more specific, it wins inside that directory — OBJECTIVE.md
+still wins every conflict. Current sub-canons:
+
+- [services/api/CLAUDE.md](services/api/CLAUDE.md) — the Python API:
+  toolchain (Python 3.14, uv, FastAPI/Pydantic, ruff, ty strict) and the
+  Ctx-first architecture.
+- [services/worker/CLAUDE.md](services/worker/CLAUDE.md) — the Go worker
+  (symlinks: [AGENT.md](services/worker/AGENT.md) /
+  [AGENTS.md](services/worker/AGENTS.md)); Go practices in
+  [services/worker/docs/GO.md](services/worker/docs/GO.md).
+
 ## Coding philosophy
 
 Two foundational texts guide design decisions in this repo. Read them before
@@ -35,7 +51,29 @@ making architectural or data-model choices:
 **Spec reviews:** [docs/SPEC-REVIEW.md](docs/SPEC-REVIEW.md) is the go-to
 guide for staff-eng review of any spec or design doc. It turns OBJECTIVE.md and
 the two texts above into ordered gates (objective fit → design lens → data
-lens) with a required verdict format. Use it before approving any spec.
+lens) with a required verdict format. Use it before approving any spec. The
+[/spec-review](.claude/commands/spec-review.md) slash command runs it against
+the current branch's spec.
+
+## Repo map
+
+Every doc in the repo hangs off this file (the doc-reachable gate enforces
+it — link new docs from here or from a doc this reaches):
+
+- [README.md](README.md) — the front door: quickstart, demo, submission
+  checklist
+- [docs/design.md](docs/design.md) — system design: platform shape, stack
+  choices, rejected alternatives; grows a section per service
+- [docs/adding-a-service.md](docs/adding-a-service.md) — the <15-minute
+  fourth-service pathway
+- [docs/user-guide.md](docs/user-guide.md) — day-to-day platform use
+- [docs/runbook.md](docs/runbook.md) — failure diagnosis and recovery
+- [docs/demo.md](docs/demo.md) — the 5-minute recording: script, locked
+  decisions, prerequisites
+- [docs/hours.md](docs/hours.md) — honest hours report, appended per session
+- [docs/reports/README.md](docs/reports/README.md) — measurement reports
+- [docs/superpowers/README.md](docs/superpowers/README.md) — design specs and
+  implementation plans (the paper trail behind each PR)
 
 House rules that follow from them:
 
@@ -48,16 +86,6 @@ House rules that follow from them:
 - Sketch two approaches before committing to non-trivial designs.
 - Scale (sharding, replication, caching layers) only when a measured load
   parameter demands it, not on a hunch.
-
-## Service-local canon
-
-A service may carry its own `CLAUDE.md` refining these rules for its stack;
-inside that directory the local file wins on stack-specific questions, and its
-service-specific docs live in the service's `docs/` and are referenced from the
-local file. Current:
-
-- [services/worker/CLAUDE.md](services/worker/CLAUDE.md) — the Go worker;
-  Go practices in [services/worker/docs/GO.md](services/worker/docs/GO.md).
 
 ## Working discipline
 
@@ -103,8 +131,9 @@ Mechanical rules are enforced by [checks/gate.sh](checks/gate.sh) (bash + git +
 grep, no dependencies). Run `make check` before pushing; `make hooks` routes git
 hooks through `.githooks/` so the gate runs on every commit. Current rules:
 
-- **doc-backlink** — every tracked `.md` (except CLAUDE.md and its symlinks)
-  links back to CLAUDE.md / AGENTS.md.
+- **doc-reachable** — every tracked `.md` is reachable from CLAUDE.md by
+  following markdown links forward (multi-hop is fine). CLAUDE.md is the map;
+  new docs must be linked from it or from something it links.
 - **symlink-integrity** — AGENTS.md and AGENT.md are symlinks resolving to
   CLAUDE.md.
 - **links-resolve** — relative markdown link targets exist on disk (links

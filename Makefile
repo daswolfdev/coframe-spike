@@ -3,7 +3,8 @@
 #   make up            bring the whole platform up, built and running
 #   make down          tear it all down
 #   make ps            what's running, health, published ports
-#   make logs [S=api]  follow logs (all services, or one)
+#   make logs [S=api]  follow logs, last 100 + live (all services, or one)
+#   make errors [S=api] follow only error/exception lines
 #   make deploy S=api  rebuild + restart ONE service
 #   make smoke         (maintainer) prove the add-a-service pathway end-to-end
 #   make check         run the convention gate (same entrypoint CI will use)
@@ -17,7 +18,7 @@ COMPOSE := docker compose --project-directory . \
   -f platform/compose.base.yaml \
   $(foreach f,$(COMPOSE_FRAGMENTS),-f $(f))
 
-.PHONY: up down ps logs deploy smoke check hooks
+.PHONY: up down ps logs errors deploy smoke check hooks
 
 up:
 ifeq ($(COMPOSE_FRAGMENTS),)
@@ -35,7 +36,12 @@ ps:
 	@$(COMPOSE) ps
 
 logs:
-	$(COMPOSE) logs -f $(S)
+	$(COMPOSE) logs -f --tail=100 $(S)
+
+# Just the bad news. BSD and GNU grep both support --line-buffered, so the
+# follow stays live on macOS and Linux.
+errors:
+	$(COMPOSE) logs -f --tail=200 $(S) | grep --line-buffered -iE 'error|exception|traceback|panic|critical|fatal'
 
 deploy:
 ifndef S

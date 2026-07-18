@@ -1,0 +1,52 @@
+{
+  "/sites": ["demo", "acme"],
+  "/sites/demo/pages": [
+    { "page_url": "/checkout", "count": 18234, "p75_ms": 2410, "last_seen_ms": 1784415300000 },
+    { "page_url": "/", "count": 15102, "p75_ms": 1620, "last_seen_ms": 1784415290000 },
+    { "page_url": "/product/battle-axe", "count": 7345, "p75_ms": 1980, "last_seen_ms": 1784415110000 },
+    { "page_url": "/search", "count": 5121, "p75_ms": 2890, "last_seen_ms": 1784414700000 },
+    { "page_url": "/cart", "count": 3894, "p75_ms": 1450, "last_seen_ms": 1784415240000 },
+    { "page_url": "/account/orders", "count": 812, "p75_ms": 3120, "last_seen_ms": 1784410000000 }
+  ],
+  "/sites/demo/trend": [
+    { "bucket_start_ms": 1784332800000, "p75_ms": 1610 },
+    { "bucket_start_ms": 1784336400000, "p75_ms": 1580 },
+    { "bucket_start_ms": 1784340000000, "p75_ms": 1650 },
+    { "bucket_start_ms": 1784343600000, "p75_ms": 1720 },
+    { "bucket_start_ms": 1784347200000, "p75_ms": 1690 },
+    { "bucket_start_ms": 1784350800000, "p75_ms": 1740 },
+    { "bucket_start_ms": 1784354400000, "p75_ms": 1810 },
+    { "bucket_start_ms": 1784358000000, "p75_ms": 2050 },
+    { "bucket_start_ms": 1784361600000, "p75_ms": 2380 },
+    { "bucket_start_ms": 1784365200000, "p75_ms": 2540 },
+    { "bucket_start_ms": 1784368800000, "p75_ms": 2410 },
+    { "bucket_start_ms": 1784372400000, "p75_ms": 2190 },
+    { "bucket_start_ms": 1784376000000, "p75_ms": 1980 },
+    { "bucket_start_ms": 1784379600000, "p75_ms": 1870 },
+    { "bucket_start_ms": 1784383200000, "p75_ms": 1790 },
+    { "bucket_start_ms": 1784386800000, "p75_ms": 1830 },
+    { "bucket_start_ms": 1784390400000, "p75_ms": 1760 },
+    { "bucket_start_ms": 1784394000000, "p75_ms": 1700 },
+    { "bucket_start_ms": 1784397600000, "p75_ms": 1680 },
+    { "bucket_start_ms": 1784401200000, "p75_ms": 1650 },
+    { "bucket_start_ms": 1784404800000, "p75_ms": 1630 },
+    { "bucket_start_ms": 1784408400000, "p75_ms": 1600 },
+    { "bucket_start_ms": 1784412000000, "p75_ms": 1590 },
+    { "bucket_start_ms": 1784415600000, "p75_ms": 1610 }
+  ],
+  "/sites/acme/pages": [
+    { "page_url": "/landing", "count": 941, "p75_ms": 1210, "last_seen_ms": 1784414000000 }
+  ],
+  "/sites/acme/trend": [
+    { "bucket_start_ms": 1784412000000, "p75_ms": 1190 },
+    { "bucket_start_ms": 1784415600000, "p75_ms": 1230 }
+  ],
+  "/config/demo": {
+    "sampling_rate": 1.0,
+    "experiments": [
+      { "id": "checkout-cta-color", "variants": ["control", "green"], "traffic": 0.5 },
+      { "id": "hero-image-lazyload", "variants": ["control", "eager"], "traffic": 0.2 }
+    ]
+  },
+  "/config/acme": { "sampling_rate": 0.1, "experiments": [] }
+}

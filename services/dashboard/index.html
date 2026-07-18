@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>perfmon</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11, 11, 11, 0.10);
+    --series-1: #2a78d6; --warning: #fab219;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --baseline: #383835; --border: rgba(255, 255, 255, 0.10);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    max-width: 760px; margin: 0 auto; padding: 24px 16px 48px;
+  }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 20px; }
+  h2 { font-size: 15px; margin-bottom: 8px; }
+  label { color: var(--ink-2); }
+  select { font: inherit; }
+  .muted { color: var(--muted); font-size: 13px; margin-left: auto; }
+  #banner {
+    margin-top: 16px; padding: 8px 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--warning); border-radius: 4px;
+  }
+  section {
+    margin-top: 24px; padding: 16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 13px; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+  tbody tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); }
+  .trend { position: relative; }
+  .trend svg { display: block; width: 100%; height: auto; }
+  .tooltip {
+    position: absolute; pointer-events: none; display: none;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+    padding: 4px 8px; font-size: 13px; white-space: nowrap;
+    transform: translate(-50%, -100%);
+  }
+  .exp { display: flex; gap: 12px; padding: 4px 0; align-items: baseline; }
+  .exp .swatch {
+    width: 10px; height: 10px; border-radius: 2px;
+    background: var(--series-1); flex: none; align-self: center;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>perfmon</h1>
+  <label>site <select id="site"></select></label>
+  <span id="updated" class="muted"></span>
+</header>
+<p id="banner" hidden>&#9888; API unreachable &mdash; showing last loaded data, which may be stale.</p>
+<main>
+  <section>
+    <h2>Top pages by volume</h2>
+    <table>
+      <thead>
+        <tr><th>page</th><th class="num">events</th><th class="num">p75 LCP</th><th class="num">last seen</th></tr>
+      </thead>
+      <tbody id="pages"></tbody>
+    </table>
+  </section>
+  <section>
+    <h2>p75 LCP trend</h2>
+    <div id="trend" class="trend"></div>
+  </section>
+  <section>
+    <h2>Active experiments</h2>
+    <div id="experiments"></div>
+  </section>
+</main>
+<script src="app.js" type="module"></script>
+</body>
+</html>
