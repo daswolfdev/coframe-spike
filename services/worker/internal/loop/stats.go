@@ -50,13 +50,13 @@ func (s *Stats) TickWithin(now time.Time, within time.Duration) bool {
 
 // Snapshot is the /stats JSON shape. Percentiles, never averages.
 type Snapshot struct {
-	EventsConsumedTotal uint64  `json:"events_consumed_total"`
-	BatchesApplied      uint64  `json:"batches_applied"`
-	QueueDepth          int64   `json:"queue_depth"`
+	EventsConsumedTotal uint64 `json:"events_consumed_total"`
+	BatchesApplied      uint64 `json:"batches_applied"`
+	QueueDepth          int64  `json:"queue_depth"`
 	// Epoch ms — every HTTP surface speaks ms (the api's /stats does too).
-	LastFlushMs         int64   `json:"last_flush_ms"`
-	FlushP50Ms          float64 `json:"flush_p50_ms"`
-	FlushP95Ms          float64 `json:"flush_p95_ms"`
+	LastFlushMs int64   `json:"last_flush_ms"`
+	FlushP50Ms  float64 `json:"flush_p50_ms"`
+	FlushP95Ms  float64 `json:"flush_p95_ms"`
 }
 
 func (s *Stats) Snapshot(queueDepth int64) Snapshot {
