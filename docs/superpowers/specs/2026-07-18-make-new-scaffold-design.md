@@ -78,7 +78,7 @@ pathway mechanically, keeping the claim continuously true.
 
 ## Done when
 
-- `make new S=demo-x` produces a directory that `make ps` discovers.
+- `make new S=demo-x` then `make deploy S=demo-x` comes up healthy.
 - Re-running `make new S=demo-x` fails cleanly without touching the
   existing directory.
 - `make new` (no `S`) and `make new S=Bad_Name` fail with usage errors.

@@ -18,4 +18,5 @@ disagree, design.md wins.
 
 ## Plans
 
+- [2026-07-18 — `make new` service scaffold](plans/2026-07-18-make-new-scaffold.md)
 - [2026-07-18 — Monorepo layout](plans/2026-07-18-monorepo-layout.md)
