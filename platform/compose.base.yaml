@@ -1,0 +1,4 @@
+# Platform-owned compose config. Services NEVER need edits here — they
+# self-register by existing as services/<name>/compose.yaml.
+# Later platform PRs add shared infra (queue, db, observability) to this file.
+name: perfmon

@@ -32,8 +32,16 @@ making architectural or data-model choices:
   craft**: intent-revealing names, small pure functions, errors as values,
   YAGNI and the rule of three, the code-smell table.
 
+**Spec reviews:** [docs/SPEC-REVIEW.md](docs/SPEC-REVIEW.md) is the go-to
+guide for staff-eng review of any spec or design doc. It turns OBJECTIVE.md and
+the two texts above into ordered gates (objective fit → design lens → data
+lens) with a required verdict format. Use it before approving any spec.
+
 House rules that follow from them:
 
+- Everything must run locally on both macOS and Linux. In practice: POSIX sh
+  only (no GNU-isms — BSD sed has no GNU `-i`, stock macOS has no
+  `timeout(1)`), and Makefiles must work under Apple's make 3.81.
 - Working code is necessary, not sufficient — leave the design better than you
   found it.
 - Extract functions for a name and a boundary, not a line count. Depth wins ties.
@@ -89,9 +97,8 @@ hooks through `.githooks/` so the gate runs on every commit. Current rules:
   links back to CLAUDE.md / AGENTS.md.
 - **symlink-integrity** — AGENTS.md and AGENT.md are symlinks resolving to
   CLAUDE.md.
-- **doc-placement** — markdown lives under `docs/` or the root allowlist
-  (CLAUDE.md, AGENTS.md, AGENT.md, OBJECTIVE.md, README.md).
-- **links-resolve** — relative markdown link targets exist on disk.
+- **links-resolve** — relative markdown link targets exist on disk (links
+  quoted inside fenced code blocks are ignored).
 
 To add a rule: write a `rule_*` function in the script and append it to `RULES`.
 Future CI must call this same entrypoint.

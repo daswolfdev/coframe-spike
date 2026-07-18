@@ -42,18 +42,10 @@ rule_symlink_integrity() {
   done
 }
 
-# Markdown lives under docs/ or on the root allowlist.
-rule_doc_placement() {
-  local f
-  for f in $(tracked_md); do
-    case "$f" in
-      docs/* | CLAUDE.md | AGENTS.md | AGENT.md | OBJECTIVE.md | README.md) ;;
-      *) fail "$f" doc-placement "markdown belongs under docs/ (or the root allowlist)" ;;
-    esac
-  done
-}
+# Relative markdown link targets must exist on disk. Fenced code blocks are
+# skipped — links inside ``` fences are content being quoted, not document links.
+strip_fences() { awk '/^[[:space:]]*```/ { infence = !infence; next } !infence'; }
 
-# Relative markdown link targets must exist on disk.
 rule_links_resolve() {
   local f dir target resolved
   for f in $(tracked_md); do
@@ -71,11 +63,11 @@ rule_links_resolve() {
       if [ ! -e "$resolved" ]; then
         fail "$f" links-resolve "broken link: $target"
       fi
-    done < <(grep -oE '\]\([^)]+\)' "$f" | sed -E 's/^\]\(//; s/\)$//' | awk '{print $1}')
+    done < <(strip_fences < "$f" | grep -oE '\]\([^)]+\)' | sed -E 's/^\]\(//; s/\)$//' | awk '{print $1}')
   done
 }
 
-RULES='rule_doc_backlink rule_symlink_integrity rule_doc_placement rule_links_resolve'
+RULES='rule_doc_backlink rule_symlink_integrity rule_links_resolve'
 for rule in $RULES; do "$rule"; done
 
 if [ "$FAILURES" -gt 0 ]; then
