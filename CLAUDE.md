@@ -134,6 +134,9 @@ hooks through `.githooks/` so the gate runs on every commit. Current rules:
   CLAUDE.md.
 - **links-resolve** — relative markdown link targets exist on disk (links
   quoted inside fenced code blocks are ignored).
+- **real-healthcheck** — no tracked service ships the template's placeholder
+  probe (`"CMD", "true"`); the service contract's "real healthcheck" rule is
+  enforced, not reviewed.
 
 To add a rule: write a `rule_*` function in the script and append it to `RULES`.
 Future CI must call this same entrypoint.

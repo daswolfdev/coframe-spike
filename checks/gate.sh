@@ -76,6 +76,19 @@ rule_doc_reachable() {
   done
 }
 
+# The service contract requires a real healthcheck; the template's placeholder
+# probe must not survive the copy (tracked fragments only, so the transient
+# smoke-test copy is exempt).
+rule_real_healthcheck() {
+  local f
+  for f in $(git ls-files 'services/*/compose.yaml'); do
+    case "$f" in services/_*) continue ;; esac
+    if grep -q '"CMD", "true"' "$f"; then
+      fail "$f" real-healthcheck "placeholder probe from the template — replace with a real check"
+    fi
+  done
+}
+
 # The agent-guidance entrypoints stay symlinks to CLAUDE.md.
 rule_symlink_integrity() {
   local l
@@ -113,7 +126,7 @@ rule_links_resolve() {
   done
 }
 
-RULES='rule_doc_reachable rule_symlink_integrity rule_links_resolve'
+RULES='rule_doc_reachable rule_symlink_integrity rule_links_resolve rule_real_healthcheck'
 for rule in $RULES; do "$rule"; done
 
 if [ "$FAILURES" -gt 0 ]; then
