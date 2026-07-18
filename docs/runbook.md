@@ -26,7 +26,10 @@ make logs S=worker     # last lines before death: panic? OOM? clean exit?
 
 Two signals confirm it: worker not running/healthy in `make ps`, and queue
 depth rising in `/stats`. Depth alone can also mean the worker is alive
-but drowning — `make ps` disambiguates.
+but drowning — `make ps` disambiguates, and the worker's own surface
+settles it: `curl localhost:8082/stats` (events consumed, flush p50/p95)
+answers "drowning or dead", `curl localhost:8082/healthz` returns 503 when
+the loop is stalled but the process lives.
 
 ## Recover
 
