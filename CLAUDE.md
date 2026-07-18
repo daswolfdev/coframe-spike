@@ -27,6 +27,10 @@ making architectural or data-model choices:
   state**: name the goal (reliability / scalability / maintainability) when
   trading off, keep one system of record and treat everything else as
   rebuildable derived data, measure with percentiles not averages.
+- [docs/CLEAN-CODE.md](docs/CLEAN-CODE.md) — distillation of *Clean Code* /
+  *Refactoring* / *The Pragmatic Programmer*. The lens for **the line-by-line
+  craft**: intent-revealing names, small pure functions, errors as values,
+  YAGNI and the rule of three, the code-smell table.
 
 House rules that follow from them:
 
@@ -36,3 +40,26 @@ House rules that follow from them:
 - Sketch two approaches before committing to non-trivial designs.
 - Scale (sharding, replication, caching layers) only when a measured load
   parameter demands it, not on a hunch.
+
+## Working discipline
+
+- **State assumptions before coding.** Inputs, outputs, invariants, edge cases,
+  failure modes — name them first (in the commit body for small work). Silent
+  assumptions become silent bugs. Never pick silently between plausible
+  interpretations — surface them and ask; push back when a simpler approach is
+  warranted.
+- **Simplify before coding.** Write the minimum code that solves the asked
+  problem, nothing speculative — no unrequested flexibility or config, no
+  abstractions for single-use code, no error handling for impossible cases.
+  Prefer deleting, reusing, or folding into an existing seam over adding layers.
+- **Define "done" as a command.** Turn the task into a verifiable check before
+  making the change — a failing test that passes, a `curl` that returns 200, a
+  screenshot that matches. This applies to config, infra, and ops work too.
+- **Stay surgical, but leave it cleaner.** Don't refactor unrelated code or
+  restyle files the task doesn't touch; within code you do touch, apply the
+  Boy Scout Rule. Large cleanups get their own commit.
+- **Bugs leave regression tests** — a test that would have caught it, with a
+  comment naming the failure mode.
+- **Re-run simplification before finishing.** After it works, review the diff
+  for reuse, simplification, efficiency, and altitude cleanups; apply the
+  worthwhile ones, then re-verify.
