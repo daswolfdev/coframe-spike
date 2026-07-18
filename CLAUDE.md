@@ -49,6 +49,16 @@ House rules that follow from them:
 - Scale (sharding, replication, caching layers) only when a measured load
   parameter demands it, not on a hunch.
 
+## Service-local canon
+
+A service may carry its own `CLAUDE.md` refining these rules for its stack;
+inside that directory the local file wins on stack-specific questions, and its
+service-specific docs live in the service's `docs/` and are referenced from the
+local file. Current:
+
+- [services/worker/CLAUDE.md](services/worker/CLAUDE.md) — the Go worker;
+  Go practices in [services/worker/docs/GO.md](services/worker/docs/GO.md).
+
 ## Working discipline
 
 - **State assumptions before coding.** Inputs, outputs, invariants, edge cases,
