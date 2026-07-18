@@ -72,9 +72,11 @@ def db_create(data_dir: Path) -> Db:
 
 
 def _open(path: Path) -> sqlite3.Connection:
-    # check_same_thread=False: FastAPI runs sync handlers on a threadpool;
-    # SQLite is compiled serialized, so single autocommit statements are safe
-    # on a shared connection. Multi-statement writes must go through
+    # check_same_thread=False: handlers here are async (event-loop thread),
+    # but any future sync handler runs on FastAPI's threadpool, and tests
+    # assert on this connection from a different thread than TestClient's
+    # worker. SQLite is compiled serialized, so single autocommit statements
+    # are safe on a shared connection. Multi-statement writes must go through
     # Db.transaction() — see its docstring for why.
     conn = sqlite3.connect(path, check_same_thread=False, autocommit=True)
     conn.execute("PRAGMA journal_mode=WAL")

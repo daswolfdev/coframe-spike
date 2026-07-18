@@ -40,9 +40,13 @@ def test_post_event_enqueues_typed_row(tctx: TestCtx) -> None:
 
 
 def test_post_event_rejects_invalid_payload(tctx: TestCtx) -> None:
+    # "Infinity" coerces to inf and passes ge=0 unless allow_inf_nan=False —
+    # one Inf row would poison every p75 aggregate downstream.
     client = TestClient(create_app(tctx))
     missing_field = {k: v for k, v in EVENT.items() if k != "site_id"}
     negative_lcp = {**EVENT, "lcp_ms": -1}
+    infinite_lcp = {**EVENT, "lcp_ms": "Infinity"}
     assert client.post("/events", json=missing_field).status_code == 422
     assert client.post("/events", json=negative_lcp).status_code == 422
+    assert client.post("/events", json=infinite_lcp).status_code == 422
     assert _queue_rows(tctx) == []

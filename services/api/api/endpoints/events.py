@@ -12,7 +12,9 @@ class EventIn(BaseModel):
 
     site_id: str = Field(min_length=1, max_length=64)
     page_url: str = Field(min_length=1, max_length=2048)
-    lcp_ms: float = Field(ge=0)
+    # allow_inf_nan=False: pydantic coerces "Infinity" to inf, which passes
+    # ge=0 — one Inf row would poison every p75 aggregate downstream.
+    lcp_ms: float = Field(ge=0, allow_inf_nan=False)
     timestamp: int = Field(ge=0)
     session_id: str = Field(min_length=1, max_length=128)
 
