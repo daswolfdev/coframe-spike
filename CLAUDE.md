@@ -62,6 +62,8 @@ it — link new docs from here or from a doc this reaches):
   fourth-service pathway
 - [docs/user-guide.md](docs/user-guide.md) — day-to-day platform use
 - [docs/runbook.md](docs/runbook.md) — failure diagnosis and recovery
+- [docs/demo.md](docs/demo.md) — the 5-minute recording: script, locked
+  decisions, prerequisites
 - [docs/reports/README.md](docs/reports/README.md) — measurement reports
 - [docs/superpowers/README.md](docs/superpowers/README.md) — design specs and
   implementation plans (the paper trail behind each PR)
