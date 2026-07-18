@@ -24,15 +24,23 @@ depth climbing) go straight to the [runbook](runbook.md).
 - **Dashboard:** <http://localhost:8081> — top pages, p75 LCP trend, active
   experiments; the ops strip shows queue depth and data freshness.
   `?fixture=1` renders canned data if you want the page without traffic.
-- **API:** <http://localhost:8000> — `POST /events` (SDK ingest) and
-  `GET /config/{site_id}` (SDK config) land with #11; `/healthz` is live.
+- **API:** <http://localhost:8000> — `POST /events` (SDK ingest),
+  `GET /config/{site_id}` (SDK config), `/healthz`. Read endpoints for the
+  dashboard land with the worker's aggregates.
 - Each service owns its host port in its own `services/<name>/compose.yaml`.
 
 ## Changing SDK config (experiments, sampling)
 
-Config is served by the api from its own store (`config.db`); the editing
-surface lands with the api's #11 work — until then it is developer-seeded.
-This page gains the exact steps when that merges.
+Config is code ([design.md](design.md), "Config as code"): the site map
+lives in `services/api/api/cfg.py`, git is the system of record.
+
+```sh
+$EDITOR services/api/api/cfg.py     # change a sampling rate, add an experiment
+make deploy S=api                    # health-gated, seconds
+curl localhost:8000/config/demo      # see it live
+```
+
+Every config change is a commit — reviewable, revertable, auditable.
 
 ## Adding a service
 
