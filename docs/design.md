@@ -35,6 +35,34 @@ contributor breaking main); observability stack (trigger: first service PR —
 logs/metrics land with something to observe); queue/db in compose.base.yaml
 (trigger: the api service PR chooses one and justifies it here).
 
+## worker
+
+**Shape:** Go binary; consumes `queue.db` (batch claim via
+`BEGIN IMMEDIATE`, 250ms poll, ≤2,000 rows), folds per-`(site_id,
+page_url)` minute buckets of log-binned LCP histograms plus a running
+row into `agg.db` (worker is its only writer). Effectively-once: batch
+marker inside the agg transaction, startup recovery, crash-only error
+policy. State: `queue.db` rows are transient; `page_minute` is the
+system of record for aggregates; `page_current` is derived. Full spec:
+[superpowers/specs/2026-07-18-worker-design.md](superpowers/specs/2026-07-18-worker-design.md).
+
+**Why SQLite + single loop:** measured (see
+[reports/2026-07-18-sqlite-wal-throughput.md](reports/2026-07-18-sqlite-wal-throughput.md))
+at ~33× drain headroom over the 1,000 events/s ceiling. Rejected
+alternative: staged goroutine pipeline — concurrency without a load
+parameter demanding it. Driver `modernc.org/sqlite` (pure Go,
+CGO-free cross-compile); rejected: `mattn/go-sqlite3` (CGO speed the
+headroom makes irrelevant).
+
+**Least confident decision:** the queue schema is a two-service
+contract defined by the consumer before the producer exists; the API
+PR may want additive changes.
+
+**Deliberately not built (and triggers):** bucket pruning (trigger:
+agg.db size or dashboard p95 degrading); multi-worker claims (trigger:
+drain headroom exhausted — post-ceiling); exact percentiles (trigger:
+a product need finer than the histogram's ≈5% resolution).
+
 ---
 
 *Part of the repo canon — see [CLAUDE.md](../CLAUDE.md).*
