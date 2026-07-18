@@ -14,6 +14,9 @@ side effects, no module that secretly knows about the environment. Swapping
 the ctx swaps the world: production wiring and test wiring differ only in
 which `Ctx` gets built.
 
+(All modules sit inside the `api/` package — see the layout note in
+[../CLAUDE.md](../CLAUDE.md) for why a flat layout is unsafe.)
+
 ## The layers, inside out
 
 ### Pure core
@@ -137,7 +140,7 @@ The uvicorn entry is a one-line adapter:
 
 ```python
 # app.py
-def build() -> FastAPI:          # uvicorn app:build --factory
+def build() -> FastAPI:          # uvicorn api.app:build --factory
     return create_app(ctx_create())
 ```
 

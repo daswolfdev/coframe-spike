@@ -33,6 +33,11 @@ the ctx to a global, an env var, a clock, or a database.
 
 ### Layout (fixed)
 
+All modules live in the **`api/` package** (`services/api/api/…`), never as
+top-level files: a top-level `secrets.py` would shadow the stdlib `secrets`
+module for the whole process (websockets/starlette import it). Filenames
+below are unchanged by this; imports are `from api.ctx import Ctx`.
+
 | Path | Role |
 |---|---|
 | `app.py` | `create_app(ctx) -> FastAPI` — the only place routes are registered |
