@@ -1,4 +1,9 @@
 # Platform-owned compose config. Services NEVER need edits here — they
 # self-register by existing as services/<name>/compose.yaml.
-# Later platform PRs add shared infra (queue, db, observability) to this file.
+# Later platform PRs add shared infra (observability) to this file.
 name: perfmon
+
+# The shared data volume: queue.db + the per-service stores live here.
+# Added by the worker PR — the first service to need it.
+volumes:
+  data:

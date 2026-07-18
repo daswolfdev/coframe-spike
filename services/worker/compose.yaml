@@ -1,0 +1,17 @@
+services:
+  worker:
+    build:
+      context: ./services/worker
+    environment:
+      QUEUE_DB: /data/queue.db
+      AGG_DB: /data/agg.db
+      LISTEN: ":8081"
+    ports:
+      - "8081:8081"
+    volumes:
+      - data:/data
+    healthcheck:
+      test: ["CMD", "/worker", "-check"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
