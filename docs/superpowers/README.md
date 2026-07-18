@@ -7,6 +7,7 @@ unlisted artifacts fail `make check`, so listing here is not optional.
 
 ## Specs
 
+- [2026-07-18 — Dashboard service](specs/2026-07-18-dashboard-design.md)
 - [2026-07-18 — Monorepo layout](specs/2026-07-18-monorepo-layout-design.md)
 
 ## Plans
