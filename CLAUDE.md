@@ -32,6 +32,11 @@ making architectural or data-model choices:
   craft**: intent-revealing names, small pure functions, errors as values,
   YAGNI and the rule of three, the code-smell table.
 
+**Spec reviews:** [docs/SPEC-REVIEW.md](docs/SPEC-REVIEW.md) is the go-to
+guide for staff-eng review of any spec or design doc. It turns OBJECTIVE.md and
+the two texts above into ordered gates (objective fit → design lens → data
+lens) with a required verdict format. Use it before approving any spec.
+
 House rules that follow from them:
 
 - Working code is necessary, not sufficient — leave the design better than you
