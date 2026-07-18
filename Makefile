@@ -53,12 +53,22 @@ hooks: ## Route git hooks through .githooks (pre-commit runs the gate)
 # Maintainer check: proves a copied template deploys healthy with zero
 # platform edits, then cleans up. Keeps the <15-minute add-a-service claim
 # and the service contract (name match, healthcheck) continuously true.
+# POSIX-only recipe (no `sed -i`, no `timeout`) — must run on stock macOS
+# and Linux alike.
 smoke:
 	rm -rf services/smoke-test
-	cp -r services/_template services/smoke-test
-	sed -i 's/_template/smoke-test/g' services/smoke-test/compose.yaml
+	mkdir -p services/smoke-test
+	cp services/_template/Dockerfile services/smoke-test/Dockerfile
+	sed 's/_template/smoke-test/g' services/_template/compose.yaml > services/smoke-test/compose.yaml
 	$(MAKE) up
-	timeout 60 sh -c 'until [ "$$(docker inspect -f "{{.State.Health.Status}}" perfmon-smoke-test-1 2>/dev/null)" = "healthy" ]; do sleep 2; done'
+	i=0; until [ "$$(docker inspect -f '{{.State.Health.Status}}' perfmon-smoke-test-1 2>/dev/null)" = "healthy" ]; do \
+	  i=$$((i+1)); \
+	  if [ "$$i" -ge 30 ]; then \
+	    echo "smoke: FAIL — service never became healthy"; \
+	    $(MAKE) down; rm -rf services/smoke-test; exit 1; \
+	  fi; \
+	  sleep 2; \
+	done
 	$(MAKE) down
 	rm -rf services/smoke-test
 	@echo "smoke: PASS — template deployed healthy, tore down clean"
