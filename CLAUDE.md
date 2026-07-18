@@ -12,6 +12,18 @@ under-built are both wrong.** Before starting or scoping any work, check it
 against OBJECTIVE.md. When any other guidance in this repo conflicts with it,
 OBJECTIVE.md wins.
 
+## Sub-project canons
+
+A service directory may carry its own `CLAUDE.md` (with
+[AGENT.md](services/api/AGENT.md) / [AGENTS.md](services/api/AGENTS.md)
+symlinks, mirroring the root convention) refining these rules for work inside
+it; where it is more specific, it wins inside that directory — OBJECTIVE.md
+still wins every conflict. Current sub-canons:
+
+- [services/api/CLAUDE.md](services/api/CLAUDE.md) — the Python API:
+  toolchain (Python 3.14, uv, FastAPI/Pydantic, ruff, ty strict) and the
+  Ctx-first architecture.
+
 ## Coding philosophy
 
 Two foundational texts guide design decisions in this repo. Read them before
