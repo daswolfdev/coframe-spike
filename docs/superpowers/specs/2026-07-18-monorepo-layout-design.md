@@ -1,7 +1,7 @@
 # Monorepo Layout — Design
 
 **Date:** 2026-07-18
-**Status:** Approved
+**Status:** Approved (staff-eng review passed after one revise cycle)
 **Branch:** `monorepo-layout` → PR into `main`
 
 ## Goal
@@ -52,7 +52,7 @@ Five targets hiding all of Docker Compose:
 
 | Target | Does |
 |---|---|
-| `make up` | Discover fragments, `docker compose -f base -f frag… up -d --build`, print status + URLs |
+| `make up` | Discover fragments, `docker compose -f base -f frag… up -d --build`, print status |
 | `make down` | Tear everything down |
 | `make logs [S=api]` | Follow logs, all services or one |
 | `make deploy S=api` | Rebuild + restart **one** service (`up -d --build api`) |
@@ -68,6 +68,15 @@ Mechanism:
   the whole system.
 - With zero fragments present (this PR), `make up` still runs cleanly — the
   layout is proven before any service exists.
+- Status output (from `make up` and `make ps`) is **discovered, never
+  declared**: service names, health, and published ports come from
+  `docker compose ps`. The Makefile holds no per-service knowledge — a
+  hardcoded URL or port list would silently reintroduce central registration.
+- One maintainer target, `make smoke`, copies `_template/` to a throwaway
+  service, brings the platform up, waits for it to report healthy, and tears
+  it down. This keeps the <15-min pathway claim continuously verifiable and
+  mechanically enforces the contract invariants (name match, healthcheck
+  present) instead of trusting review.
 
 ## The service contract
 
@@ -77,10 +86,18 @@ A service **is** a directory under `services/` containing:
   directory name, with a healthcheck, logging to stdout.
 - `Dockerfile` — how it builds.
 
-That is the entire contract. No central registration: the Makefile's discovery
-makes OBJECTIVE.md's "no platform changes" claim literal. `_template/` embodies
-the contract; `docs/adding-a-service.md` narrates it step-by-step with a
-15-minute walkthrough.
+**Host ports are owned by the service**, not the platform: a service that
+needs one picks an unused host port in its own fragment (`make ps` shows
+what's taken). `_template/compose.yaml` ships a commented port line stating
+this rule, and choosing a port is an explicit step in the
+`adding-a-service.md` walkthrough. Collisions surface at `make up`; no
+reverse proxy — over-engineering at this scale.
+
+That is the entire contract, and `make smoke` enforces it mechanically. No
+central registration: the Makefile's discovery makes OBJECTIVE.md's "no
+platform changes" claim literal. `_template/` embodies the contract;
+`docs/adding-a-service.md` narrates it step-by-step with a 15-minute
+walkthrough.
 
 ## Alternatives considered
 
@@ -105,5 +122,5 @@ the contract; `docs/adding-a-service.md` narrates it step-by-step with a
 ## Verification
 
 - `make up`, `make ps`, `make down` run clean on the empty platform.
-- Smoke-test discovery: `cp -r services/_template services/test-svc && make up`
-  brings the template service up; removed before commit.
+- `make smoke` proves discovery and the service contract end-to-end (template
+  copy → up → healthy → torn down), repeatably — not a one-shot manual test.
