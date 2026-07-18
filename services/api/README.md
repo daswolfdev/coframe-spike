@@ -9,6 +9,8 @@ Python/FastAPI service. Endpoints:
   the hardcoded map in `api/cfg.py`; unknown site → 404. Changing config =
   edit cfg.py + `make deploy S=api`
 - `GET /healthz` — verifies the queue schema exists
+- `GET /stats` — ops surface: `queue_depth`, `last_aggregate_ms` (null
+  until the worker has written aggregates)
 
 Next: the dashboard read contract (#15) once the worker's aggregates exist.
 See OBJECTIVE.md.
