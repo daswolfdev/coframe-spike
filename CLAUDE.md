@@ -63,3 +63,19 @@ House rules that follow from them:
 - **Re-run simplification before finishing.** After it works, review the diff
   for reuse, simplification, efficiency, and altitude cleanups; apply the
   worthwhile ones, then re-verify.
+
+## Things to avoid
+
+- **Committing secrets or build artifacts.** Config is committed; secrets are
+  env-loaded and git-ignored (`.env` and friends). Generated output stays out
+  of the tree.
+- **Backwards-compat shims.** All services here deploy together with one
+  command — rename the field and update both sides rather than keeping compat
+  layers alive.
+
+## Running & driving the app
+
+*Placeholder — once `make up` (or equivalent) exists, document here: how to
+bring the stack up, what state to expect on a fresh boot, and how to verify a
+change end-to-end (the curl / dashboard check an agent should run to see its
+work, not just its tests).*
