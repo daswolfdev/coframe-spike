@@ -64,6 +64,21 @@ House rules that follow from them:
   for reuse, simplification, efficiency, and altitude cleanups; apply the
   worthwhile ones, then re-verify.
 
+## Project tracking — GitHub Issues
+
+GitHub Issues on this repo are the planning surface. Use them freely and
+proactively (`gh issue create`, `gh issue list`, …):
+
+- **Create issues liberally.** Planned work, scope decisions, deferred items
+  ("didn't build X, would build when Y"), known gaps, and follow-ups all get an
+  issue — small is fine; an issue title and two sentences beat an untracked
+  TODO. Deferred-work issues double as material for the design doc's
+  "deliberately didn't build" section.
+- **Reference issues as you go.** Branches, commits, and PRs cite the issues
+  they touch (`#12`); PRs that complete an issue close it via `Closes #12`.
+- **Keep them honest.** Close what's done or obsolete; comment when scope
+  changes rather than letting the issue drift from reality.
+
 ## Things to avoid
 
 - **Committing secrets or build artifacts.** Config is committed; secrets are
