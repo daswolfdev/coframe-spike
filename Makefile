@@ -11,6 +11,7 @@
 #   make smoke         (maintainer) prove the add-a-service pathway end-to-end
 #   make check         run the convention gate (same entrypoint CI will use)
 #   make hooks         route git hooks through .githooks (pre-commit runs the gate)
+#   make help          print this list
 #
 # Services are discovered, never registered: every services/*/compose.yaml
 # is part of the platform (underscore-prefixed dirs like _template excluded).
@@ -20,7 +21,11 @@ COMPOSE := docker compose --project-directory . \
   -f platform/compose.base.yaml \
   $(foreach f,$(COMPOSE_FRAGMENTS),-f $(f))
 
-.PHONY: up down ps logs errors stats deploy new smoke check hooks
+.PHONY: up down ps logs errors stats deploy new smoke check hooks help
+
+# The header comment above is the single source of truth for the verb list.
+help:
+	@sed -n 's/^#   //p' $(firstword $(MAKEFILE_LIST))
 
 up:
 ifeq ($(COMPOSE_FRAGMENTS),)
