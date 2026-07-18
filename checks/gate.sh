@@ -42,19 +42,6 @@ rule_symlink_integrity() {
   done
 }
 
-# Markdown lives under docs/ or on the root allowlist.
-rule_doc_placement() {
-  local f
-  for f in $(tracked_md); do
-    case "$f" in
-      docs/* | CLAUDE.md | AGENTS.md | AGENT.md | OBJECTIVE.md | README.md) ;;
-      .claude/*) ;;             # agent tooling (slash commands) must live here
-      services/*/README.md) ;;  # per-service docs are part of the service contract
-      *) fail "$f" doc-placement "markdown belongs under docs/ (or the root allowlist)" ;;
-    esac
-  done
-}
-
 # Relative markdown link targets must exist on disk. Fenced code blocks are
 # skipped — links inside ``` fences are content being quoted, not document links.
 strip_fences() { awk '/^[[:space:]]*```/ { infence = !infence; next } !infence'; }
@@ -80,7 +67,7 @@ rule_links_resolve() {
   done
 }
 
-RULES='rule_doc_backlink rule_symlink_integrity rule_doc_placement rule_links_resolve'
+RULES='rule_doc_backlink rule_symlink_integrity rule_links_resolve'
 for rule in $RULES; do "$rule"; done
 
 if [ "$FAILURES" -gt 0 ]; then

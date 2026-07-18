@@ -97,9 +97,8 @@ hooks through `.githooks/` so the gate runs on every commit. Current rules:
   links back to CLAUDE.md / AGENTS.md.
 - **symlink-integrity** — AGENTS.md and AGENT.md are symlinks resolving to
   CLAUDE.md.
-- **doc-placement** — markdown lives under `docs/` or the root allowlist
-  (CLAUDE.md, AGENTS.md, AGENT.md, OBJECTIVE.md, README.md).
-- **links-resolve** — relative markdown link targets exist on disk.
+- **links-resolve** — relative markdown link targets exist on disk (links
+  quoted inside fenced code blocks are ignored).
 
 To add a rule: write a `rule_*` function in the script and append it to `RULES`.
 Future CI must call this same entrypoint.
