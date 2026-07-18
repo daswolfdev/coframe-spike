@@ -15,9 +15,8 @@ the one the [runbook](runbook.md) documents; they are written as a pair.
   safe, repeatable, visually obvious, recovery is a platform verb, and the
   queue proves its reason for existing: ingest keeps working, nothing lost.
 - **The key number:** queue depth, read live from the api's `GET /stats`
-  (#19) in a terminal poll loop —
-  `while :; do curl -s localhost:8000/stats; echo; sleep 1; done` —
-  with `last_aggregate_ms` carrying the staleness story. Observability is
+  (#19) via `make stats` — a dedicated pane polling once a second — with
+  `last_aggregate_ms` carrying the staleness story. Observability is
   demonstrated through the same surface the team and the runbook actually
   use; the dashboard ops strip (#20) is deliberately deferred — the
   terminal *is* the platform's interface.

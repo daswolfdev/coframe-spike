@@ -5,6 +5,7 @@
 #   make ps            what's running, health, published ports
 #   make logs [S=api]  follow logs, last 100 + live (all services, or one)
 #   make errors [S=api] follow only error/exception lines
+#   make stats [S=api]  poll a service's /stats once a second (Ctrl-C stops)
 #   make deploy S=api  rebuild + restart ONE service
 #   make new S=alerts  scaffold an empty service from the template
 #   make smoke         (maintainer) prove the add-a-service pathway end-to-end
@@ -19,7 +20,7 @@ COMPOSE := docker compose --project-directory . \
   -f platform/compose.base.yaml \
   $(foreach f,$(COMPOSE_FRAGMENTS),-f $(f))
 
-.PHONY: up down ps logs errors deploy new smoke check hooks
+.PHONY: up down ps logs errors stats deploy new smoke check hooks
 
 up:
 ifeq ($(COMPOSE_FRAGMENTS),)
@@ -43,6 +44,14 @@ logs:
 # follow stays live on macOS and Linux.
 errors:
 	$(COMPOSE) logs -f --tail=200 $(S) | grep --line-buffered -iE 'error|exception|traceback|panic|critical|fatal'
+
+# Live platform health: the queue-depth/freshness surface the demo and
+# runbook use. The address is discovered from the running container — the
+# Makefile knows no ports (design.md: discovered, never declared).
+stats:
+	@svc=$${S:-api}; \
+	addr=$$($(COMPOSE) ps --format json $$svc | python3 -c 'import json,sys; d=json.loads(sys.stdin.readline()); p=d["Publishers"][0]; print((p["URL"] or "127.0.0.1")+":"+str(p["PublishedPort"]))') || { echo "stats: $$svc not running (make up first)"; exit 1; }; \
+	while :; do curl -s "http://$$addr/stats"; echo; sleep 1; done
 
 deploy:
 ifndef S
