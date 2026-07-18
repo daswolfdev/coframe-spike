@@ -30,7 +30,8 @@ the one the [runbook](runbook.md) documents; they are written as a pair.
 ## Prerequisites (tracked as issues)
 
 - [#18](https://github.com/daswolfdev/coframe-spike/issues/18) — load
-  generator with a sent-count, so the no-loss claim is checkable
+  generator with a sent-count, so the no-loss claim is checkable:
+  `python3 tools/loadgen.py` (stdlib only; Ctrl-C prints the final count)
 - [#19](https://github.com/daswolfdev/coframe-spike/issues/19) — API ops
   read surface (queue depth + last-aggregate time)
 - [#20](https://github.com/daswolfdev/coframe-spike/issues/20) — dashboard
