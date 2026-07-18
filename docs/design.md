@@ -36,3 +36,32 @@ mesh (trigger: real port-collision pain or TLS needs); CI (trigger: second
 contributor breaking main); observability stack (trigger: first service PR —
 logs/metrics land with something to observe); queue/db in compose.base.yaml
 (trigger: the api service PR chooses one and justifies it here).
+
+## dashboard
+
+**Shape:** nginx:alpine serving one static page (plain HTML + one ES module +
+inline SVG, no build step) on host port 8081, proxying `/api/` to the api
+same-origin. In: the read contract proposed in #15 (`/sites`,
+`/sites/{id}/pages`, `/sites/{id}/trend`, `/config/{id}`). Out: pixels.
+**State: none** — pure derived view; refresh rebuilds everything; nothing to
+back up and nothing for the runbook. (The nginx `/api/` location is a
+same-origin proxy for the dashboard's own calls, not the platform-wide
+reverse proxy deliberately not built above — services still own their ports.)
+
+**Contract posture:** built ahead of its data sources; #15 is the contract's
+authoritative home while the api's read endpoints are under negotiation.
+404/502 and empty data collapse into one "no data yet" render, so the
+dashboard ships before the api's read endpoints and the worker's aggregates
+exist, and degrades identically when they fail later. `?fixture=1` renders
+the committed executable example of the contract (sync discipline lives in
+[the service README](../services/dashboard/README.md)). When the api is
+unreachable, last-loaded data stays on screen under a banner that says it
+may be stale.
+
+**Rejected alternatives:** a framework + bundler (React/Vite) — toolchain
+and build artifacts to operate for one page of tables and a sparkline; CORS
+instead of the proxy — smears the api's origin into browser JS and CORS
+middleware into the api (two services own one decision), plus preflight
+traffic. Load at ceiling: 1,000 users polling every 5s ≈ 600 req/s of
+static/proxy traffic — nginx territory; api-side reads have measured
+headroom (~9,300 QPS, [benchmark report](reports/2026-07-18-sqlite-wal-throughput.md)).
