@@ -394,7 +394,3 @@ EOF
 ```
 
 Expected: PR URL printed.
-
----
-
-*Part of the repo canon — see [CLAUDE.md](../../../CLAUDE.md).*

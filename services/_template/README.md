@@ -8,5 +8,3 @@ underscore) deploys automatically.
 The most likely mistake: forgetting to make the service name in
 `compose.yaml` match the new directory name. `make smoke` exists to prove
 the pathway stays healthy.
-
-House rules: [CLAUDE.md](../../CLAUDE.md).
