@@ -5,9 +5,12 @@ argument-hint: [spec-path]
 
 Review a spec as a staff engineer.
 
-1. **Target:** `$ARGUMENTS` if given. Otherwise the newest spec in
-   `docs/superpowers/specs/` by the `YYYY-MM-DD` filename prefix. If that
-   directory is empty or the choice is ambiguous, ask which spec to review.
+1. **Target:** `$ARGUMENTS` if given. Otherwise only specs committed on the
+   current branch:
+   `git diff --name-only main...HEAD -- docs/superpowers/specs/`.
+   If exactly one, review it. If several, review the one from the most recent
+   commit on the branch. If none (or resolution is still unclear), ask which
+   spec to review — never fall back to specs already on main.
 2. Read `docs/SPEC-REVIEW.md` and follow it exactly: apply the gates in order,
    stop at the first failing gate, cite the violated principle for every
    finding, and end with its verdict format.
