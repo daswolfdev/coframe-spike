@@ -185,3 +185,12 @@ func trailingHist(tx *sql.Tx, site, page string, sinceMinute int64) (*Hist, erro
 	}
 	return &total, rows.Err()
 }
+
+// Current reads one running row — used by tests and ops tooling; the
+// dashboard's API reads the same schema directly.
+func (s *Store) Current(site, page string) (count, p75 int64, err error) {
+	err = s.db.QueryRow(
+		`SELECT count, p75_ms FROM page_current WHERE site_id=? AND page_url=?`,
+		site, page).Scan(&count, &p75)
+	return count, p75, err
+}
